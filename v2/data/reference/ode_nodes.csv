@@ -1,0 +1,21 @@
+gene,axis,role
+ESR1,receptor,Receptor/upstream
+ERBB2,receptor,Receptor/upstream
+EGFR,receptor,Receptor/upstream
+IGF1R,receptor,Receptor/upstream
+PIK3CA,pi3k,PI3K axis
+AKT1,pi3k,PI3K axis
+MTOR,pi3k,PI3K axis
+PTEN,pi3k,PI3K axis
+KRAS,mapk,MAPK axis
+BRAF,mapk,MAPK axis
+MAP2K1,mapk,MAPK axis
+MAPK1,mapk,MAPK axis
+CCND1,cell_cycle,Cell cycle core
+CDK4,cell_cycle,Cell cycle core
+CDK6,cell_cycle,Cell cycle core
+CDKN2A,cell_cycle,Cell cycle core
+RB1,cell_cycle,Cell cycle core
+E2F1,cell_cycle,Cell cycle core
+MKI67,readout,Readout
+CDKN1A,readout,Readout

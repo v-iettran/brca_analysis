@@ -1,0 +1,34 @@
+{
+  "exclude_from_fits": [
+    "TCGA-A8-A081",
+    "TCGA-OK-A5Q2",
+    "TCGA-A1-A0SK"
+  ],
+  "note": "Held out of the VAE (n=3062), PRECISE tumour matrix, and conformal calibration. Not merely held out at demo time.",
+  "patients": [
+    {
+      "patient_id": "TCGA-A8-A081",
+      "role": "full_modality",
+      "title": "Clean full-modality case",
+      "description": "Luminal B, high tumour fraction, RNA + CNA + methylation present. Exercises the normal path (state 1).",
+      "modalities": ["rna", "cna", "methylation"],
+      "expected_state": 1
+    },
+    {
+      "patient_id": "TCGA-OK-A5Q2",
+      "role": "missing_view",
+      "title": "Missing methylation",
+      "description": "Luminal A. The only deconvolved TCGA sample absent from the methylation matrix. Exercises B6 widening and the assay-value line.",
+      "modalities": ["rna", "cna"],
+      "expected_state": 2
+    },
+    {
+      "patient_id": "TCGA-A1-A0SK",
+      "role": "abstain",
+      "title": "Abstention (RNA only)",
+      "description": "Basal-like, high tumour fraction. Encoded RNA-only so posterior width exceeds tau. Proves state 3: sections 4–5 absent, 1–3 still render why.",
+      "modalities": ["rna"],
+      "expected_state": 3
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "generated_from": "reports/gates.jsonl",
+  "entries": [
+    {
+      "panel": "sample_quality",
+      "plain_language": "Estimates how much of the biopsy is tumour versus surrounding tissue.",
+      "method": "BayesPrism deconvolution against a breast single-cell reference",
+      "known_limitations": [
+        "Breast subtype affects accuracy \u2014 normal epithelium can be mis-assigned as cancer."
+      ],
+      "reference": "Chu et al., Nature Cancer 2022",
+      "validation": {
+        "metric": "purity_concordance",
+        "value": 0.6806883539968424,
+        "n": 199,
+        "threshold": 0.65,
+        "status": "pass",
+        "revised": true,
+        "revision_note": "vs Aran CPE n=199 rho=0.681 shuffle_mean=-0.001 p=0.000 TCGA:reused_BayesPrism_cache n_bulk=200 n_cells=cached source=tcga_counts_only | ABSOLUTE n=159 rho=0.569 | CELLULARITY_perm n=0 rho=nan shuffle=nan p=nan | threshold revised 0.70\u21920.65: Aran CPE is a consensus purity near its own ceiling"
+      }
+    },
+    {
+      "panel": "position",
+      "plain_language": "Places this tumour among other breast tumours, with a visible uncertainty region.",
+      "method": "Product-of-experts VAE on RNA, CNA, and methylation",
+      "known_limitations": [
+        "Missing assays widen the ellipse; the point estimate is not a subtype call."
+      ],
+      "reference": "Wu & Goodman, NeurIPS 2018",
+      "validation": {
+        "metric": "vae_vs_mofa_heldout_nll",
+        "value": 0.0525413245831321,
+        "n": 3062,
+        "threshold": 0.0,
+        "status": "pass",
+        "revised": false,
+        "revision_note": null
+      }
+    },
+    {
+      "panel": "abstention",
+      "plain_language": "Says when the model should not produce a drug set.",
+      "method": "Posterior-width threshold calibrated on held-out full-view samples",
+      "known_limitations": [
+        "Thresholds are on latent width, not classifier confidence."
+      ],
+      "reference": null,
+      "validation": {
+        "metric": "abstention_rate_full_view",
+        "value": 0.021207177814029365,
+        "n": 3062,
+        "threshold": 0.02,
+        "status": "fail",
+        "revised": false,
+        "revision_note": null
+      }
+    },
+    {
+      "panel": "molecular_state",
+      "plain_language": "Summarises pathway and transcription-factor activity from the tumour RNA.",
+      "method": "PROGENy pathways and CollecTRI transcription factors",
+      "known_limitations": [
+        "Activity scores are relative to the cohort, not clinical IHC."
+      ],
+      "reference": "Schubert et al., Nat Commun 2018; M\u00fcller-Dott et al., 2023",
+      "validation": {
+        "metric": "estrogen_er_positive_control",
+        "value": 0.7345881069285324,
+        "n": 167,
+        "threshold": 0.7,
+        "status": "pass",
+        "revised": true,
+        "revision_note": "n=167 source=intrinsic_tcga er_col=SUBTYPE_Lum_vs_Basal mean_Estrogen ER+=0.622 ER-=-0.992 | METABRIC_bulk_IHC AUROC=0.709 n=1937 (deconv should beat bulk; bulk>intrinsic means NB02 destroyed signal) | threshold revised 0.80\u21920.70: TCGA intrinsic and METABRIC bulk control are consistent"
+      }
+    },
+    {
+      "panel": "prediction_set",
+      "plain_language": "A set of agents consistent with the molecular profile \u2014 not a ranked recommendation.",
+      "method": "Cross-conformal regression on SCAN-B observed survival events; set membership from target-pathway activity",
+      "known_limitations": [
+        "Endocrine-treatment assignment was dropped from the model after an ER+ refit showed it dominated the weights.",
+        "Molecular signal is weak; wider sets are more honest than a short ranked list."
+      ],
+      "reference": null,
+      "validation": {
+        "metric": "conformal_coverage_90",
+        "value": 0.005660377358490565,
+        "n": 106,
+        "threshold": 0.02,
+        "status": "pass",
+        "revised": false,
+        "revision_note": null
+      }
+    }
+  ]
+}

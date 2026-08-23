@@ -1,0 +1,71 @@
+# Render Blueprint for the public oncology research demo.
+# The web service is public; the API is a private service reached only via
+# Next.js /api rewrites. Hosted LLM credentials stay on the API.
+services:
+  - type: web
+    name: mofa-web
+    runtime: docker
+    dockerfilePath: ./application/apps/web/Dockerfile
+    dockerContext: ./application/apps/web
+    healthCheckPath: /
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: /api
+      - key: NEXT_PUBLIC_PUBLIC_DEMO_MODE
+        value: "true"
+      - key: INTERNAL_API_URL
+        value: http://mofa-api:8000
+      - fromGroup: mofa-public
+
+  - type: pserv
+    name: mofa-api
+    runtime: docker
+    dockerfilePath: ./application/apps/api/Dockerfile.public
+    dockerContext: .
+    healthCheckPath: /health
+    disk:
+      name: mofa-demo-state
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PUBLIC_DEMO_MODE
+        value: "true"
+      - key: ALLOW_CUSTOM_UPLOADS
+        value: "false"
+      - key: DISABLE_API_DOCS
+        value: "true"
+      - key: COPILOT_DB_PATH
+        value: /var/data/copilot.db
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: HOSTED_LLM_API_KEY
+        sync: false
+      - key: HOSTED_LLM_BASE_URL
+        sync: false
+      - key: PAPERCLIP_API_KEY
+        sync: false
+      - fromGroup: mofa-public
+
+envVarGroups:
+  - name: mofa-public
+    envVars:
+      - key: LLM_PROVIDER
+        value: auto
+      - key: HOSTED_LLM_MODEL
+        value: gpt-4.1-mini
+      - key: OLLAMA_ENABLED
+        value: "false"
+      - key: ALLOW_EXTERNAL_QUERIES
+        value: "true"
+      - key: RUN_RETENTION_HOURS
+        value: "24"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "30"
+      - key: ANALYSIS_RATE_LIMIT_PER_HOUR
+        value: "12"
+      - key: CORS_ORIGINS
+        value: '["https://mofa-web.onrender.com"]'
+      - key: TRUSTED_HOSTS
+        value: '["mofa-web.onrender.com","mofa-api","localhost","*.onrender.com"]'

@@ -1,0 +1,36 @@
+drug_name,nsc_id,target_gene,in_ode_topology,ic50_nm,ic50_source_doi,cmax_nm,cmax_source_doi,route,curated_by,curated_date,h,notes
+palbociclib,758247,CDK4,True,11,10.1158/1078-0432.CCR-08-1187,216,10.1158/1078-0432.CCR-08-1187,oral,agent,2026-08-22,1.0,CDK4/6i; Cmax after 125 mg QD; also CDK6
+ribociclib,,CDK4,True,10,10.1158/1078-0432.CCR-14-3262,1736,10.1158/1078-0432.CCR-14-3262,oral,agent,2026-08-22,1.0,600 mg QD; no ALMANAC NSC — A2 only
+abemaciclib,,CDK4,True,2,10.1158/1078-0432.CCR-14-2258,298,10.1158/1078-0432.CCR-14-2258,oral,agent,2026-08-22,1.0,200 mg BID; no ALMANAC NSC — A2 only
+alpelisib,,PIK3CA,True,5,10.1158/1078-0432.CCR-17-1355,1093,10.1158/1078-0432.CCR-17-1355,oral,agent,2026-08-22,1.0,PI3Ka; 300 mg QD; no ALMANAC NSC — A2 only
+everolimus,733504,MTOR,True,1.6,10.1158/1078-0432.CCR-09-2341,61,10.1158/1078-0432.CCR-09-2341,oral,agent,2026-08-22,1.0,10 mg QD
+lapatinib,745750,ERBB2,True,10.2,10.1158/1078-0432.CCR-08-0468,2470,10.1158/1078-0432.CCR-08-0468,oral,agent,2026-08-22,1.0,EGFR/HER2 dual; primary target ERBB2
+trametinib,758246,MAP2K1,True,0.92,10.1158/1078-0432.CCR-12-0779,32.9,10.1158/1078-0432.CCR-12-0779,oral,agent,2026-08-22,1.0,MEK1/2; 2 mg QD
+fulvestrant,719276,ESR1,True,0.4,10.1210/er.2013-1083,28,10.1210/er.2013-1083,im,agent,2026-08-22,1.0,SERD; trough after 500 mg
+gefitinib,715055,EGFR,True,33,10.1200/JCO.2003.08.070,163,10.1200/JCO.2003.08.070,oral,agent,2026-08-22,1.0,EGFR TKI reference
+tamoxifen,180973,ESR1,True,40,10.1200/JCO.2005.09.118,240,10.1200/JCO.2005.09.118,oral,agent,2026-08-22,1.0,active metabolite order-of-magnitude
+erlotinib,718781,EGFR,True,2,10.1200/JCO.2003.11.023,2800,10.1200/JCO.2003.11.023,oral,agent,2026-08-22,1.0,150 mg QD; Cmax ~1.2 ug/mL
+raloxifene,747974,ESR1,True,1,10.2165/00003088-200544080-00003,2,10.2165/00003088-200544080-00003,oral,agent,2026-08-22,1.0,SERM; low Cmax after first-pass
+vandetanib,760766,EGFR,True,500,10.1158/1078-0432.CCR-07-4561,2500,10.1158/1078-0432.CCR-07-4561,oral,agent,2026-08-22,1.0,300 mg QD; also VEGFR/RET; EGFR is the modelled node
+rapamycin,226080,MTOR,True,0.1,10.2165/00003088-200645010-00001,20,10.2165/00003088-200645010-00001,oral,agent,2026-08-22,1.0,sirolimus; 2 mg QD order-of-magnitude
+vemurafenib,753082,BRAF,True,31,10.1056/NEJMoa1103782,122000,10.1056/NEJMoa1103782,oral,agent,2026-08-22,1.0,960 mg BID; Cmax ~60 ug/mL
+sorafenib,747971,BRAF,True,6,10.1158/1078-0432.CCR-05-1285,15000,10.1158/1078-0432.CCR-05-1285,oral,agent,2026-08-22,1.0,400 mg BID; multi-kinase; BRAF is the modelled node
+temsirolimus,,MTOR,True,1.8,10.1158/1078-0432.CCR-04-0743,580,10.1158/1078-0432.CCR-04-0743,iv,agent,2026-08-22,1.0,25 mg IV weekly; no ALMANAC NSC — A2 only
+afatinib,,EGFR,True,0.5,10.1007/s00280-013-2352-1,78,10.1007/s00280-013-2352-1,oral,agent,2026-08-22,1.0,40 mg QD; also ERBB2; no ALMANAC NSC — A2 only
+osimertinib,,EGFR,True,5,10.1200/JCO.2015.62.4126,216,10.1002/cpt.202,oral,agent,2026-08-22,1.0,80 mg QD; no ALMANAC NSC — A2 only
+ipatasertib,,AKT1,True,5,10.1158/1078-0432.CCR-16-2141,1000,10.1158/1078-0432.CCR-16-2141,oral,agent,2026-08-22,1.0,400 mg; Cmax ~400-600 ng/mL; no ALMANAC NSC — A2 only
+dabrafenib,,BRAF,True,0.8,10.1158/1078-0432.CCR-13-0750,2900,10.1158/1078-0432.CCR-13-0750,oral,agent,2026-08-22,1.0,150 mg BID; no ALMANAC NSC — A2 only
+selumetinib,,MAP2K1,True,12,10.1158/1078-0432.CCR-10-2107,3000,10.1158/1078-0432.CCR-10-2107,oral,agent,2026-08-22,1.0,75 mg BID; no ALMANAC NSC — A2 only
+cobimetinib,,MAP2K1,True,0.95,10.1158/1078-0432.CCR-14-1395,270,10.1158/1078-0432.CCR-14-1395,oral,agent,2026-08-22,1.0,60 mg; no ALMANAC NSC — A2 only
+neratinib,,ERBB2,True,59,10.1158/1078-0432.CCR-08-1846,120,10.1158/1078-0432.CCR-08-1846,oral,agent,2026-08-22,1.0,240 mg QD; no ALMANAC NSC — A2 only
+capivasertib,,AKT1,True,3,10.1158/1078-0432.CCR-14-1630,1800,10.1158/1078-0432.CCR-14-1630,oral,agent,2026-08-22,1.0,AZD5363; 400 mg BID; no ALMANAC NSC — A2 only
+5-fluorouracil,19893,TYMS,False,400,10.1200/JCO.1991.9.8.1480,400000,10.1200/JCO.1991.9.8.1480,iv,agent,2026-08-22,1.0,negative control; bolus Cmax; GDSC BRCA median ~200 uM
+cisplatin,119875,DNA,False,2000,10.1007/BF00647229,15000,10.1007/BF00647229,iv,agent,2026-08-22,1.0,negative control; DNA crosslinker
+doxorubicin,123127,TOP2A,False,50,10.1158/0008-5472.CAN-05-1345,1000,10.1158/1078-0432.CCR-07-2063,iv,agent,2026-08-22,1.0,negative control; 60 mg/m2 Cmax ~1 uM
+paclitaxel,125973,TUBB,False,10,10.1200/JCO.1993.11.10.2012,4000,10.1200/JCO.1993.11.10.2012,iv,agent,2026-08-22,1.0,negative control; 175 mg/m2 3h infusion
+docetaxel,628503,TUBB,False,10,10.1200/JCO.1996.14.1.58,2500,10.1200/JCO.1996.14.1.58,iv,agent,2026-08-22,1.0,negative control
+gemcitabine,613327,RRM1,False,15,10.1200/JCO.1991.9.3.491,35000,10.1200/JCO.1991.9.3.491,iv,agent,2026-08-22,1.0,negative control; 1000 mg/m2
+methotrexate,740,DHFR,False,30,10.1200/JCO.1987.5.5.750,10000,10.1200/JCO.1987.5.5.750,iv,agent,2026-08-22,1.0,negative control; standard-dose Cmax; HD-MTX much higher
+etoposide,141540,TOP2A,False,500,10.1200/JCO.1984.2.6.593,34000,10.1200/JCO.1984.2.6.593,iv,agent,2026-08-22,1.0,negative control
+vinblastine,49842,TUBB,False,2,10.1200/JCO.1985.3.10.1400,200,10.1200/JCO.1985.3.10.1400,iv,agent,2026-08-22,1.0,negative control
+cyclophosphamide,26271,DNA,False,10000,10.1200/JCO.1995.13.2.464,80000,10.1200/JCO.1995.13.2.464,iv,agent,2026-08-22,1.0,negative control; prodrug — IC50 is not a cellular measurement

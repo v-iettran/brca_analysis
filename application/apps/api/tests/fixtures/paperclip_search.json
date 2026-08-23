@@ -1,0 +1,28 @@
+{
+  "results": [
+    {
+      "title": "A systematic review of docetaxel efficacy in HER2-negative breast cancer",
+      "year": 2021,
+      "doi": "10.1234/example.docetaxel.review",
+      "pmid": "12345678",
+      "journal": "Journal of Clinical Oncology",
+      "publisher": "ASCO",
+      "type": "review-article",
+      "peer_reviewed": true,
+      "full_text_available": true,
+      "abstract": "This systematic review found docetaxel produced a significant improvement in pathological complete response rates across several trials."
+    },
+    {
+      "title": "Resistance mechanisms to docetaxel in triple-negative breast cancer",
+      "year": 2019,
+      "doi": "10.1234/example.docetaxel.resistance",
+      "pmid": "87654321",
+      "journal": "Breast Cancer Research",
+      "publisher": "BioMed Central",
+      "type": "research-article",
+      "peer_reviewed": true,
+      "full_text_available": false,
+      "abstract": "Acquired resistance to docetaxel was observed in a subset of patients, associated with upregulation of ABCB1."
+    }
+  ]
+}

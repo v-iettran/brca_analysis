@@ -1,0 +1,106 @@
+nsc,drug_name,mapping_records
+102816,azacitidine,114
+105014,cladribine,74
+109724,ifosfamide,176
+118218,fludarabine,76
+119875,cisplatin,198
+122758,isotretinoin,78
+122819,teniposide,40
+123127,doxorubicin,74
+125066,bleomycin,128
+125973,paclitaxel,98
+127716,decitabine,184
+13875,altretamine,54
+138783,bendamustine,124
+1390,allopurinol,158
+141540,etoposide,38
+14229,acrichine,158
+169780,dexrazoxane,36
+180973,tamoxifen,80
+18509,aminolevulinic acid,150
+19893,5-fluorouracil,52
+218321,pentostatin,182
+226080,rapamycin,114
+241240,carboplatin,82
+24559,mithramycin,110
+246131,valrubicin,124
+25154,pipobroman,156
+256439,idarubicin,202
+256942,epirubicin,202
+26271,cyclophosphamide,172
+266046,oxaliplatin,180
+26980,mitomycin,168
+27640,floxuridine,68
+279836,mitoxantrone,34
+296961,amifostine,184
+3053,actinomycin d,60
+3088,chlorambucil,58
+32065,hydroxyurea,112
+34462,uracil mustard,50
+362856,temozolomide,84
+369100,imiquimod,178
+38721,mitotane,132
+409962,carmustine,186
+45388,dacarbazine,48
+45923,methoxsalen,170
+49842,vinblastine,126
+606869,clofarabine,112
+608210,vinorelbine,32
+609699,topotecan,184
+613327,gemcitabine,112
+628503,docetaxel,108
+63878,cytarabine,70
+6396,thiotepa,66
+66847,thalidomide,162
+673596,7 ethyl 10 hydroxycamptothecin,110
+67574,vincristine,72
+681239,bortezomib,194
+686673,nelarabine,106
+698037,pemetrexed,30
+701852,vorinostat,114
+702294,estramustine,192
+707389,idarubicin,2
+712807,capecitabine,110
+713563,exemestane,28
+71423,megestrol acetate,46
+715055,gefitinib,26
+718781,erlotinib,194
+719276,fulvestrant,134
+719344,anastrozole,142
+719345,letrozole,58
+719627,celecoxib,64
+721517,zoledronate,130
+732517,dasatinib,110
+733504,everolimus,112
+737754,pazopanib,16
+740,methotrexate,112
+743414,imatinib,86
+745750,lapatinib,114
+747599,nilotinib,102
+747971,sorafenib,128
+747972,lenalidomide,24
+747973,ixabepilone,190
+747974,raloxifene,22
+749226,abiraterone,18
+750,busulfan,154
+750690,sunitinib,116
+752,6 thioguanine,60
+753082,vemurafenib,42
+754143,depsipeptide,108
+754230,pralatrexate,142
+755,6 mercaptopurine,136
+755986,vismodegib,18
+756645,crizotinib,56
+757441,axitinib,18
+760766,vandetanib,18
+761431,vemurafenib,20
+761432,cabazitaxel,18
+762,nitrogen mustard,150
+763371,ruxolitinib,18
+77213,procarbazine,166
+79037,lomustine,44
+82151,daunorubicin,42
+85998,streptozocin,164
+8806,melphalan,56
+92859,arsenic trioxide,200
+9706,triethylenemelamine,64

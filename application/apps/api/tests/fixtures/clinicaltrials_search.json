@@ -1,0 +1,22 @@
+{
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {"nctId": "NCT01234567", "briefTitle": "Docetaxel in Breast Cancer"},
+        "statusModule": {"overallStatus": "RECRUITING"},
+        "designModule": {"phases": ["PHASE2"]},
+        "conditionsModule": {"conditions": ["Breast Cancer"]},
+        "armsInterventionsModule": {"interventions": [{"type": "DRUG", "name": "Docetaxel"}]},
+        "eligibilityModule": {
+          "eligibilityCriteria": "Inclusion Criteria: HER2-negative breast cancer, age 18 Years and older."
+        },
+        "contactsLocationsModule": {
+          "locations": [
+            {"facility": "St. James's Hospital", "city": "Dublin", "country": "Ireland"},
+            {"facility": "Example US Cancer Center", "city": "Boston", "country": "United States"}
+          ]
+        }
+      }
+    }
+  ]
+}

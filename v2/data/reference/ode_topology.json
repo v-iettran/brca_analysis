@@ -1,0 +1,195 @@
+{
+  "nodes": [
+    "ESR1",
+    "ERBB2",
+    "EGFR",
+    "IGF1R",
+    "PIK3CA",
+    "AKT1",
+    "MTOR",
+    "PTEN",
+    "KRAS",
+    "BRAF",
+    "MAP2K1",
+    "MAPK1",
+    "CCND1",
+    "CDK4",
+    "CDK6",
+    "CDKN2A",
+    "RB1",
+    "E2F1",
+    "MKI67",
+    "CDKN1A"
+  ],
+  "edges": [
+    {
+      "source": "ESR1",
+      "target": "CCND1",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "ERBB2",
+      "target": "PIK3CA",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "ERBB2",
+      "target": "KRAS",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "EGFR",
+      "target": "KRAS",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "EGFR",
+      "target": "PIK3CA",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "IGF1R",
+      "target": "PIK3CA",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "IGF1R",
+      "target": "KRAS",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "PIK3CA",
+      "target": "AKT1",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "AKT1",
+      "target": "MTOR",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "PTEN",
+      "target": "AKT1",
+      "sign": -1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "KRAS",
+      "target": "BRAF",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "BRAF",
+      "target": "MAP2K1",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "MAP2K1",
+      "target": "MAPK1",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "MAPK1",
+      "target": "CCND1",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "AKT1",
+      "target": "CCND1",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "CCND1",
+      "target": "CDK4",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "CCND1",
+      "target": "CDK6",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "CDK4",
+      "target": "RB1",
+      "sign": -1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "CDK6",
+      "target": "RB1",
+      "sign": -1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "CDKN2A",
+      "target": "CDK4",
+      "sign": -1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "CDKN2A",
+      "target": "CDK6",
+      "sign": -1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "CDKN1A",
+      "target": "CDK4",
+      "sign": -1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "RB1",
+      "target": "E2F1",
+      "sign": -1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "E2F1",
+      "target": "MKI67",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "E2F1",
+      "target": "CCND1",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "AKT1",
+      "target": "CDKN1A",
+      "sign": -1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "MAPK1",
+      "target": "E2F1",
+      "sign": 1,
+      "provenance": "literature_prior"
+    },
+    {
+      "source": "MTOR",
+      "target": "E2F1",
+      "sign": 1,
+      "provenance": "literature_prior"
+    }
+  ],
+  "hill_n_fixed": 2.0
+}

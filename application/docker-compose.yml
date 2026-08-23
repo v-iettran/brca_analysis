@@ -1,0 +1,120 @@
+# MOFA-Guided Oncology Research Copilot -- local Docker packaging.
+#
+# Runtime containers only ever see the small, versioned `outputs/` artifact
+# tree (SQLite audit DB, cluster classifier, MOFA/Q2/Q5 tables) via a bind
+# mount. Raw METABRIC (`brca_metabric/`) and the 33 GB GCTX file are never
+# copied into an image or mounted into a runtime container -- they are only
+# read by the host-only offline jobs (see application/jobs/refresh_gctx_cluster_drugs.py,
+# application/jobs/train_cluster_classifier.py, application/jobs/generate_synthetic_patients.py) that
+# regenerate the repo-root `outputs/` artifacts before `docker compose up`.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../outputs:/app/outputs
+    environment:
+      - ENVIRONMENT=production
+      - COPILOT_DB_PATH=/app/outputs/copilot_artifacts/copilot.db
+      - ARTIFACT_DIR=/app/outputs/copilot_artifacts
+      - MOFA_CLUSTERS_DIR=/app/outputs/q4/mofa_clusters
+      - Q2_TABLES_DIR=/app/outputs/q2/data
+      - Q5_TABLES_DIR=/app/outputs/q5/tables
+      - SYNTHETIC_PATIENTS_DIR=/app/outputs/copilot_artifacts/synthetic_patients
+      - ALLOW_EXTERNAL_QUERIES=${ALLOW_EXTERNAL_QUERIES:-false}
+      - PAPERCLIP_API_KEY=${PAPERCLIP_API_KEY:-}
+      - OLLAMA_ENABLED=${OLLAMA_ENABLED:-false}
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-gemma3:4b}
+      - PUBLIC_DEMO_MODE=${PUBLIC_DEMO_MODE:-false}
+      - ALLOW_CUSTOM_UPLOADS=${ALLOW_CUSTOM_UPLOADS:-true}
+      - LLM_PROVIDER=${LLM_PROVIDER:-auto}
+      - HOSTED_LLM_BASE_URL=${HOSTED_LLM_BASE_URL:-}
+      - HOSTED_LLM_API_KEY=${HOSTED_LLM_API_KEY:-}
+      - SESSION_SECRET=${SESSION_SECRET:-dev-only-change-in-production}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - api
+
+  api-public:
+    profiles: ["public"]
+    build:
+      context: ..
+      dockerfile: application/apps/api/Dockerfile.public
+    ports:
+      - "8000:8000"
+    volumes:
+      - public_demo_data:/var/data
+    environment:
+      - ENVIRONMENT=production
+      - PUBLIC_DEMO_MODE=true
+      - ALLOW_CUSTOM_UPLOADS=false
+      - DISABLE_API_DOCS=true
+      - COPILOT_DB_PATH=/var/data/copilot.db
+      - ARTIFACT_DIR=/app/outputs/copilot_artifacts
+      - SYNTHETIC_PATIENTS_DIR=/app/outputs/copilot_artifacts/synthetic_patients
+      - COMPOUND_REGISTRY_DIR=/app/outputs/compound_registry/v1
+      - PUBLIC_DEMO_BUNDLE_DIR=/app/outputs/copilot_artifacts/public_demo_bundle/v1
+      - ALLOW_EXTERNAL_QUERIES=${ALLOW_EXTERNAL_QUERIES:-false}
+      - PAPERCLIP_API_KEY=${PAPERCLIP_API_KEY:-}
+      - LLM_PROVIDER=${LLM_PROVIDER:-auto}
+      - HOSTED_LLM_BASE_URL=${HOSTED_LLM_BASE_URL:-}
+      - HOSTED_LLM_API_KEY=${HOSTED_LLM_API_KEY:-}
+      - HOSTED_LLM_MODEL=${HOSTED_LLM_MODEL:-gpt-4.1-mini}
+      - OLLAMA_ENABLED=false
+      - SESSION_SECRET=${SESSION_SECRET:-dev-only-change-in-production}
+      - CORS_ORIGINS=["http://localhost:3000"]
+      - TRUSTED_HOSTS=["localhost","127.0.0.1","testserver"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  web-public:
+    profiles: ["public"]
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: /api
+        NEXT_PUBLIC_PUBLIC_DEMO_MODE: "true"
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=/api
+      - NEXT_PUBLIC_PUBLIC_DEMO_MODE=true
+      - INTERNAL_API_URL=http://api-public:8000
+    depends_on:
+      - api-public
+
+  # Optional local LLM used only for evidence explanations and citation-stance
+  # classification. Disabled by default; run `docker compose --profile llm up`
+  # to include it, and set OLLAMA_ENABLED=true for the api service.
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["llm"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+
+volumes:
+  ollama_models:
+  public_demo_data:

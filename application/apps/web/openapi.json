@@ -1,0 +1,2799 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MOFA-Guided Oncology Research Copilot API",
+    "version": "0.2.0"
+  },
+  "paths": {
+    "/analysis/{run_id}": {
+      "get": {
+        "summary": "Get Analysis",
+        "operationId": "get_analysis_analysis__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisResultOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analysis/{run_id}/progress": {
+      "get": {
+        "summary": "Progress",
+        "operationId": "progress_analysis__run_id__progress_get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisProgressOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analysis/demo/{patient_id}": {
+      "post": {
+        "summary": "Demo",
+        "operationId": "demo_analysis_demo__patient_id__post",
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Patient Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisSubmitAck"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patients/demo": {
+      "get": {
+        "summary": "List Demo",
+        "operationId": "list_demo_patients_demo_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DemoPatientSummary"
+                  },
+                  "type": "array",
+                  "title": "Response List Demo Patients Demo Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patients/glossary": {
+      "get": {
+        "summary": "Glossary",
+        "operationId": "glossary_patients_glossary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Glossary Patients Glossary Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AbstentionState": {
+        "properties": {
+          "abstained": {
+            "type": "boolean",
+            "title": "Abstained"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "reason_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Text"
+          },
+          "what_would_help": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "What Would Help"
+          },
+          "sections_rendered": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sections Rendered"
+          }
+        },
+        "type": "object",
+        "required": [
+          "abstained"
+        ],
+        "title": "AbstentionState"
+      },
+      "AlmanacCombinationOut": {
+        "properties": {
+          "drug_a": {
+            "type": "string",
+            "title": "Drug A"
+          },
+          "drug_b": {
+            "type": "string",
+            "title": "Drug B"
+          },
+          "combination": {
+            "type": "string",
+            "title": "Combination"
+          },
+          "aligned_cell_lines": {
+            "type": "integer",
+            "title": "Aligned Cell Lines"
+          },
+          "aligned_cell_line_names": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aligned Cell Line Names"
+          },
+          "aligned_median_almanac_combo_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aligned Median Almanac Combo Score"
+          },
+          "aligned_pair_support": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aligned Pair Support"
+          },
+          "component_support": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Component Support"
+          },
+          "q2_percentile_a": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Q2 Percentile A"
+          },
+          "q2_percentile_b": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Q2 Percentile B"
+          },
+          "combination_priority": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Combination Priority"
+          },
+          "cell_line_alignment_confidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cell Line Alignment Confidence"
+          },
+          "interpretation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interpretation"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          }
+        },
+        "type": "object",
+        "required": [
+          "drug_a",
+          "drug_b",
+          "combination",
+          "aligned_cell_lines"
+        ],
+        "title": "AlmanacCombinationOut"
+      },
+      "AnalysisProgressOut": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "current_stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Stage"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisStageOut"
+            },
+            "type": "array",
+            "title": "Stages",
+            "default": []
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "status"
+        ],
+        "title": "AnalysisProgressOut"
+      },
+      "AnalysisResultOut": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "patient_label": {
+            "type": "string",
+            "title": "Patient Label"
+          },
+          "patient_metadata": {
+            "$ref": "#/components/schemas/PatientMetadata"
+          },
+          "administered_regimen": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Administered Regimen"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 0
+          },
+          "signature_params": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Params"
+          },
+          "cluster_prediction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ClusterPredictionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rna_projection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RnaProjectionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cluster_signature": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignaturePanelOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "residual_signature": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignaturePanelOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "overlap_nominations": {
+            "items": {
+              "$ref": "#/components/schemas/OverlapNominationOut"
+            },
+            "type": "array",
+            "title": "Overlap Nominations",
+            "default": []
+          },
+          "overlap_exploratory": {
+            "items": {
+              "$ref": "#/components/schemas/OverlapNominationOut"
+            },
+            "type": "array",
+            "title": "Overlap Exploratory",
+            "default": []
+          },
+          "overlap_technical_excluded": {
+            "items": {
+              "$ref": "#/components/schemas/OverlapNominationOut"
+            },
+            "type": "array",
+            "title": "Overlap Technical Excluded",
+            "default": []
+          },
+          "display_gate_summary": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Gate Summary"
+          },
+          "compound_registry_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compound Registry Version"
+          },
+          "analysis_summary": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Summary"
+          },
+          "clinical_comparators": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Clinical Comparators",
+            "default": []
+          },
+          "predictor_single_drugs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Predictor Single Drugs",
+            "default": []
+          },
+          "predictor_combinations": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Predictor Combinations",
+            "default": []
+          },
+          "predictor_summary": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predictor Summary"
+          },
+          "near_consensus": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Near Consensus",
+            "default": []
+          },
+          "overlap_summary": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overlap Summary"
+          },
+          "almanac_combinations": {
+            "items": {
+              "$ref": "#/components/schemas/AlmanacCombinationOut"
+            },
+            "type": "array",
+            "title": "Almanac Combinations",
+            "default": []
+          },
+          "list1_drugs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "List1 Drugs",
+            "default": []
+          },
+          "list2_drugs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "List2 Drugs",
+            "default": []
+          },
+          "administered_regimen_pcr": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupportedPcrResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "top_candidate_drugs": {
+            "items": {
+              "$ref": "#/components/schemas/DrugCandidate"
+            },
+            "type": "array",
+            "title": "Top Candidate Drugs",
+            "default": []
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations",
+            "default": []
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/WarningOut"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "current_stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Stage"
+          },
+          "prototype": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PrototypePayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schema_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema Version"
+          },
+          "s4_ships": {
+            "type": "boolean",
+            "title": "S4 Ships",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "status",
+          "created_at",
+          "patient_label",
+          "patient_metadata",
+          "administered_regimen"
+        ],
+        "title": "AnalysisResultOut"
+      },
+      "AnalysisStageOut": {
+        "properties": {
+          "stage_id": {
+            "type": "string",
+            "title": "Stage Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stage_id",
+          "label",
+          "status"
+        ],
+        "title": "AnalysisStageOut"
+      },
+      "AnalysisSubmitAck": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "poll_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Poll Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "status"
+        ],
+        "title": "AnalysisSubmitAck"
+      },
+      "ApplicabilityGate": {
+        "properties": {
+          "represented": {
+            "type": "boolean",
+            "title": "Represented"
+          },
+          "gate_passed": {
+            "type": "boolean",
+            "title": "Gate Passed"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "regimen_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regimen Label"
+          },
+          "validated_cohort": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validated Cohort"
+          },
+          "validated_split": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validated Split"
+          },
+          "held_out_auroc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Held Out Auroc"
+          },
+          "gate_threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gate Threshold"
+          }
+        },
+        "type": "object",
+        "required": [
+          "represented",
+          "gate_passed"
+        ],
+        "title": "ApplicabilityGate"
+      },
+      "ClinicalDiscrepancy": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "clinical": {
+            "type": "string",
+            "title": "Clinical"
+          },
+          "inferred": {
+            "type": "string",
+            "title": "Inferred"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity",
+            "default": "note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "clinical",
+          "inferred"
+        ],
+        "title": "ClinicalDiscrepancy"
+      },
+      "ClusterBadge": {
+        "properties": {
+          "label": {
+            "type": "integer",
+            "title": "Label"
+          },
+          "posterior_mass": {
+            "type": "number",
+            "title": "Posterior Mass"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "posterior_mass"
+        ],
+        "title": "ClusterBadge"
+      },
+      "ClusterPredictionOut": {
+        "properties": {
+          "probabilities": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Probabilities"
+          },
+          "top_cluster": {
+            "type": "integer",
+            "title": "Top Cluster"
+          },
+          "top_probability": {
+            "type": "number",
+            "title": "Top Probability"
+          },
+          "confidence_level": {
+            "type": "string",
+            "enum": [
+              "high",
+              "moderate",
+              "low",
+              "abstain"
+            ],
+            "title": "Confidence Level"
+          },
+          "gene_coverage": {
+            "type": "number",
+            "title": "Gene Coverage"
+          },
+          "genes_found": {
+            "type": "integer",
+            "title": "Genes Found"
+          },
+          "genes_requested": {
+            "type": "integer",
+            "title": "Genes Requested"
+          },
+          "method_used": {
+            "type": "string",
+            "enum": [
+              "signature_similarity",
+              "elastic_net"
+            ],
+            "title": "Method Used"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "probabilities",
+          "top_cluster",
+          "top_probability",
+          "confidence_level",
+          "gene_coverage",
+          "genes_found",
+          "genes_requested",
+          "method_used",
+          "warnings"
+        ],
+        "title": "ClusterPredictionOut"
+      },
+      "CompositionPart": {
+        "properties": {
+          "cell_type": {
+            "type": "string",
+            "title": "Cell Type"
+          },
+          "fraction": {
+            "type": "number",
+            "title": "Fraction"
+          },
+          "ci": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Ci"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cell_type",
+          "fraction"
+        ],
+        "title": "CompositionPart"
+      },
+      "DemoPatientSummary": {
+        "properties": {
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "modalities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Modalities"
+          },
+          "expected_state": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "patient_id",
+          "role",
+          "title",
+          "description"
+        ],
+        "title": "DemoPatientSummary"
+      },
+      "DrugCandidate": {
+        "properties": {
+          "drug": {
+            "type": "string",
+            "title": "Drug"
+          },
+          "targets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Targets"
+          },
+          "gctx_evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GctxDrugEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "q2_evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Q2DrugEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "literature_summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TargetLiteratureCount"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Literature Summary"
+          },
+          "is_in_administered_regimen": {
+            "type": "boolean",
+            "title": "Is In Administered Regimen",
+            "default": false
+          },
+          "evidence_tier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Tier"
+          },
+          "list1_percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "List1 Percentile"
+          },
+          "list2_percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "List2 Percentile"
+          },
+          "indication_bucket": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Indication Bucket"
+          },
+          "robustness": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Robustness"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "drug",
+          "targets"
+        ],
+        "title": "DrugCandidate",
+        "description": "One nominated drug with every evidence component kept separate --\nthere is deliberately no single overall score or tier."
+      },
+      "GctxClusterEvidence": {
+        "properties": {
+          "cluster_id": {
+            "type": "integer",
+            "title": "Cluster Id"
+          },
+          "cluster_probability": {
+            "type": "number",
+            "title": "Cluster Probability"
+          },
+          "drug_rank": {
+            "type": "integer",
+            "title": "Drug Rank"
+          },
+          "reversal_score": {
+            "type": "number",
+            "title": "Reversal Score"
+          },
+          "percentile": {
+            "type": "number",
+            "title": "Percentile"
+          },
+          "n_signatures": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N Signatures"
+          },
+          "targets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Targets"
+          },
+          "n_drugs_in_cluster": {
+            "type": "integer",
+            "title": "N Drugs In Cluster"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cluster_id",
+          "cluster_probability",
+          "drug_rank",
+          "reversal_score",
+          "percentile",
+          "n_signatures",
+          "targets",
+          "n_drugs_in_cluster"
+        ],
+        "title": "GctxClusterEvidence"
+      },
+      "GctxDrugEvidence": {
+        "properties": {
+          "drug": {
+            "type": "string",
+            "title": "Drug"
+          },
+          "blended_percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blended Percentile"
+          },
+          "clusters_with_data": {
+            "type": "integer",
+            "title": "Clusters With Data"
+          },
+          "per_cluster": {
+            "items": {
+              "$ref": "#/components/schemas/GctxClusterEvidence"
+            },
+            "type": "array",
+            "title": "Per Cluster"
+          }
+        },
+        "type": "object",
+        "required": [
+          "drug",
+          "blended_percentile",
+          "clusters_with_data",
+          "per_cluster"
+        ],
+        "title": "GctxDrugEvidence"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ModalityValue": {
+        "properties": {
+          "modality": {
+            "type": "string",
+            "title": "Modality"
+          },
+          "present": {
+            "type": "boolean",
+            "title": "Present"
+          },
+          "posterior_width_reduction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posterior Width Reduction"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modality",
+          "present"
+        ],
+        "title": "ModalityValue"
+      },
+      "MolecularState": {
+        "properties": {
+          "pathways": {
+            "items": {
+              "$ref": "#/components/schemas/PathwayActivity"
+            },
+            "type": "array",
+            "title": "Pathways"
+          },
+          "transcription_factors": {
+            "items": {
+              "$ref": "#/components/schemas/TranscriptionFactor"
+            },
+            "type": "array",
+            "title": "Transcription Factors"
+          },
+          "discrepancies": {
+            "items": {
+              "$ref": "#/components/schemas/ClinicalDiscrepancy"
+            },
+            "type": "array",
+            "title": "Discrepancies"
+          }
+        },
+        "type": "object",
+        "title": "MolecularState"
+      },
+      "OverlapNominationOut": {
+        "properties": {
+          "drug": {
+            "type": "string",
+            "title": "Drug"
+          },
+          "canonical": {
+            "type": "string",
+            "title": "Canonical"
+          },
+          "list1_percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "List1 Percentile"
+          },
+          "list2_percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "List2 Percentile"
+          },
+          "weaker_percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weaker Percentile"
+          },
+          "stronger_percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stronger Percentile"
+          },
+          "rank_product": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank Product"
+          },
+          "list1_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "List1 Rank"
+          },
+          "list2_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "List2 Rank"
+          },
+          "targets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Targets",
+            "default": []
+          },
+          "evidence_tier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Tier"
+          },
+          "indication_bucket": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Indication Bucket"
+          },
+          "robustness": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Robustness"
+          },
+          "q2_annotation": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Q2 Annotation"
+          },
+          "literature_summary": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Literature Summary"
+          },
+          "is_in_administered_regimen": {
+            "type": "boolean",
+            "title": "Is In Administered Regimen",
+            "default": false
+          },
+          "nomination_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nomination Rank"
+          },
+          "support_class": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "breast_cell_line_supported",
+                  "suggestive",
+                  "excluded_low_confidence"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Support Class"
+          },
+          "support_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Support Rank"
+          },
+          "human_development_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Human Development Status"
+          },
+          "human_development_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Human Development Label"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "display_action": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "default_visible",
+                  "exploratory_only",
+                  "technical_excluded"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Action"
+          },
+          "display_gate_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Gate Reason"
+          },
+          "registry_match_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registry Match Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "drug",
+          "canonical"
+        ],
+        "title": "OverlapNominationOut"
+      },
+      "PathwayActivity": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "activity": {
+            "type": "number",
+            "title": "Activity"
+          },
+          "z": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Z"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "activity"
+        ],
+        "title": "PathwayActivity"
+      },
+      "PatientMetadata": {
+        "properties": {
+          "age_at_diagnosis": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age At Diagnosis"
+          },
+          "er_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Er Status"
+          },
+          "her2_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Her2 Status"
+          },
+          "pr_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pr Status"
+          },
+          "claudin_subtype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claudin Subtype"
+          },
+          "histological_subtype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Histological Subtype"
+          },
+          "lymph_nodes_positive": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lymph Nodes Positive"
+          },
+          "menopausal_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Menopausal State"
+          },
+          "nottingham_prognostic_index": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nottingham Prognostic Index"
+          },
+          "tumor_stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tumor Stage"
+          },
+          "tumor_grade": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tumor Grade"
+          },
+          "tumor_size_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tumor Size Mm"
+          },
+          "ecog_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ecog Status"
+          },
+          "prior_therapy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prior Therapy"
+          },
+          "organ_function": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organ Function"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "field_provenance": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Provenance"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "title": "PatientMetadata",
+        "description": "Oncology metadata. Extra demo-enriched fields are allowed and preserved."
+      },
+      "PatientPosition": {
+        "properties": {
+          "umap_coords": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Umap Coords"
+          },
+          "posterior_ellipse": {
+            "$ref": "#/components/schemas/PosteriorEllipse"
+          },
+          "cluster": {
+            "$ref": "#/components/schemas/ClusterBadge"
+          },
+          "cohort_density_ref": {
+            "type": "string",
+            "title": "Cohort Density Ref",
+            "default": "tcga_brca_v2"
+          },
+          "modalities_used": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Modalities Used"
+          },
+          "cohort_points": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Cohort Points"
+          },
+          "posterior_width": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posterior Width"
+          },
+          "tau": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tau"
+          }
+        },
+        "type": "object",
+        "required": [
+          "umap_coords",
+          "posterior_ellipse",
+          "cluster"
+        ],
+        "title": "PatientPosition"
+      },
+      "PosteriorEllipse": {
+        "properties": {
+          "rx": {
+            "type": "number",
+            "title": "Rx"
+          },
+          "ry": {
+            "type": "number",
+            "title": "Ry"
+          },
+          "theta": {
+            "type": "number",
+            "title": "Theta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rx",
+          "ry",
+          "theta"
+        ],
+        "title": "PosteriorEllipse"
+      },
+      "PredictionSet": {
+        "properties": {
+          "coverage_level": {
+            "type": "number",
+            "title": "Coverage Level",
+            "default": 0.9
+          },
+          "set_members": {
+            "items": {
+              "$ref": "#/components/schemas/SetMember"
+            },
+            "type": "array",
+            "title": "Set Members"
+          },
+          "set_width_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Set Width Note"
+          },
+          "excluded_count": {
+            "type": "integer",
+            "title": "Excluded Count",
+            "default": 0
+          },
+          "n_scored": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N Scored"
+          }
+        },
+        "type": "object",
+        "title": "PredictionSet"
+      },
+      "PrototypePayload": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "v2_prototype",
+            "title": "Schema Version",
+            "default": "v2_prototype"
+          },
+          "patient_id": {
+            "type": "string",
+            "title": "Patient Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "state": {
+            "type": "integer",
+            "title": "State",
+            "default": 1
+          },
+          "banner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Banner"
+          },
+          "modalities_present": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Modalities Present"
+          },
+          "patient_metadata": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Patient Metadata"
+          },
+          "sample_quality": {
+            "$ref": "#/components/schemas/SampleQuality"
+          },
+          "position": {
+            "$ref": "#/components/schemas/PatientPosition"
+          },
+          "molecular_state": {
+            "$ref": "#/components/schemas/MolecularState"
+          },
+          "prediction_set": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PredictionSet"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "modality_value_estimate": {
+            "items": {
+              "$ref": "#/components/schemas/ModalityValue"
+            },
+            "type": "array",
+            "title": "Modality Value Estimate"
+          },
+          "abstention": {
+            "$ref": "#/components/schemas/AbstentionState"
+          },
+          "s4_ships": {
+            "type": "boolean",
+            "title": "S4 Ships",
+            "default": false
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "patient_id",
+          "role",
+          "sample_quality",
+          "position",
+          "molecular_state",
+          "abstention"
+        ],
+        "title": "PrototypePayload"
+      },
+      "Q2DrugEvidence": {
+        "properties": {
+          "drug": {
+            "type": "string",
+            "title": "Drug"
+          },
+          "raw_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Score"
+          },
+          "z_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Z Score"
+          },
+          "genes_used": {
+            "type": "integer",
+            "title": "Genes Used"
+          },
+          "evidence_category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Category"
+          },
+          "model_support": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Support"
+          },
+          "model_spearman": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Spearman"
+          },
+          "external_spearman": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Spearman"
+          }
+        },
+        "type": "object",
+        "required": [
+          "drug",
+          "raw_score",
+          "z_score",
+          "genes_used"
+        ],
+        "title": "Q2DrugEvidence"
+      },
+      "RnaProjectionOut": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "title": "Method"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "patient": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Patient"
+          },
+          "reference": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Reference",
+            "default": []
+          },
+          "n_reference_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N Reference Total"
+          },
+          "n_reference_shown": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N Reference Shown"
+          },
+          "genes_used": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genes Used"
+          },
+          "gene_coverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gene Coverage"
+          }
+        },
+        "type": "object",
+        "required": [
+          "method",
+          "label",
+          "patient"
+        ],
+        "title": "RnaProjectionOut"
+      },
+      "SampleQuality": {
+        "properties": {
+          "tumour_fraction": {
+            "type": "number",
+            "title": "Tumour Fraction"
+          },
+          "composition": {
+            "items": {
+              "$ref": "#/components/schemas/CompositionPart"
+            },
+            "type": "array",
+            "title": "Composition"
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "sufficient",
+              "marginal",
+              "insufficient"
+            ],
+            "title": "Verdict"
+          },
+          "verdict_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tumour_fraction",
+          "verdict"
+        ],
+        "title": "SampleQuality"
+      },
+      "SetMember": {
+        "properties": {
+          "drug": {
+            "type": "string",
+            "title": "Drug"
+          },
+          "evidence_tier": {
+            "type": "string",
+            "title": "Evidence Tier",
+            "default": "B"
+          }
+        },
+        "type": "object",
+        "required": [
+          "drug"
+        ],
+        "title": "SetMember"
+      },
+      "SignatureGeneOut": {
+        "properties": {
+          "gene": {
+            "type": "string",
+            "title": "Gene"
+          },
+          "effect": {
+            "type": "number",
+            "title": "Effect"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down"
+            ],
+            "title": "Direction"
+          },
+          "pval": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pval"
+          },
+          "fdr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fdr"
+          },
+          "literature_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Literature Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "gene",
+          "effect",
+          "direction"
+        ],
+        "title": "SignatureGeneOut"
+      },
+      "SignaturePanelOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "cluster",
+              "residual"
+            ],
+            "title": "Kind"
+          },
+          "cluster_id": {
+            "type": "integer",
+            "title": "Cluster Id"
+          },
+          "top_up": {
+            "type": "integer",
+            "title": "Top Up"
+          },
+          "top_down": {
+            "type": "integer",
+            "title": "Top Down"
+          },
+          "n_up": {
+            "type": "integer",
+            "title": "N Up"
+          },
+          "n_down": {
+            "type": "integer",
+            "title": "N Down"
+          },
+          "genes": {
+            "items": {
+              "$ref": "#/components/schemas/SignatureGeneOut"
+            },
+            "type": "array",
+            "title": "Genes",
+            "default": []
+          },
+          "coverage_fraction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage Fraction"
+          },
+          "genes_used": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genes Used"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "cluster_id",
+          "top_up",
+          "top_down",
+          "n_up",
+          "n_down"
+        ],
+        "title": "SignaturePanelOut"
+      },
+      "SupportedPcrResult": {
+        "properties": {
+          "applicability_gate": {
+            "$ref": "#/components/schemas/ApplicabilityGate"
+          },
+          "mofa_regimen_reversal_percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mofa Regimen Reversal Percentile"
+          },
+          "mofa_regimen_reversal_note": {
+            "type": "string",
+            "title": "Mofa Regimen Reversal Note"
+          },
+          "pcr_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pcr Probability"
+          },
+          "q2_regimen_score": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Q2 Regimen Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "applicability_gate",
+          "mofa_regimen_reversal_percentile",
+          "mofa_regimen_reversal_note",
+          "pcr_probability",
+          "q2_regimen_score"
+        ],
+        "title": "SupportedPcrResult"
+      },
+      "TargetLiteratureCount": {
+        "properties": {
+          "drug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drug"
+          },
+          "total_citations": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Citations"
+          },
+          "supporting": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supporting"
+          },
+          "conflicting": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conflicting"
+          },
+          "neutral": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Neutral"
+          },
+          "unclear": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unclear"
+          },
+          "retrieved_relevant_references": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved Relevant References"
+          },
+          "stance_counts": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stance Counts"
+          },
+          "dominant_stance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dominant Stance"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          },
+          "cache_hit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Hit"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "title": "TargetLiteratureCount",
+        "description": "Legacy compact counts plus V2 retrieved-reference summary fields."
+      },
+      "TranscriptionFactor": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "activity": {
+            "type": "number",
+            "title": "Activity"
+          },
+          "reliability": {
+            "type": "string",
+            "title": "Reliability",
+            "default": "high"
+          },
+          "reliability_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reliability Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "activity"
+        ],
+        "title": "TranscriptionFactor"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WarningOut": {
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "info",
+              "caution",
+              "abstain"
+            ],
+            "title": "Severity"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "severity",
+          "message"
+        ],
+        "title": "WarningOut"
+      }
+    }
+  }
+}

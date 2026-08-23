@@ -1,0 +1,33 @@
+# Core (also used by the class Q1/Q4 scripts)
+pandas>=2.3
+numpy>=2.0
+scipy>=1.14
+scikit-learn>=1.5
+statsmodels>=0.14
+matplotlib>=3.9
+seaborn>=0.13
+pyarrow>=17
+openpyxl>=3.1
+requests
+tqdm
+jupyterlab
+pytest>=8.0
+certifi
+
+# v2 additions
+jax[cpu]>=0.4.35
+equinox>=0.11
+diffrax>=0.6
+optax>=0.2
+jaxopt>=0.8
+torch>=2.4
+decoupler>=1.8
+omnipath>=1.0
+mudata>=0.3
+mofapy2>=0.7
+mapie>=0.9
+lifelines>=0.29
+umap-learn>=0.5
+anndata>=0.10
+nbformat>=5.10
+nbclient>=0.10

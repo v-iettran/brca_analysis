@@ -1,0 +1,14 @@
+# Keep raw data, large artifacts, and virtualenvs out of Docker build contexts.
+.git
+.venv_copilot
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/node_modules
+**/.next
+outputs/
+data/
+brca_metabric/
+*.gctx
+apps/web/node_modules
+apps/web/.next
