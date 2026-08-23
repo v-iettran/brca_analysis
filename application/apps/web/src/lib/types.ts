@@ -352,10 +352,23 @@ export interface MolecularState {
   discrepancies: Array<{ field: string; clinical: string; inferred: string; severity: string }>;
 }
 
-export interface PredictionSet {
-  coverage_level: number;
+export interface PrognosticEstimate {
+  point_days?: number | null;
+  interval_days?: number[] | null;
+  requested_coverage: number;
+  empirical_coverage?: number | null;
+  n: number;
+  method: string;
+  label: string;
+  domain_note: string;
+  validated: boolean;
+}
+
+export interface PathwayCandidates {
+  basis: "pathway_activity_threshold";
+  validated: boolean;
+  threshold_rule: string;
   set_members: Array<{ drug: string; evidence_tier: string }>;
-  set_width_note?: string | null;
   excluded_count: number;
   n_scored?: number | null;
 }
@@ -381,7 +394,8 @@ export interface PrototypePayload {
   sample_quality: SampleQuality;
   position: PatientPosition;
   molecular_state: MolecularState;
-  prediction_set?: PredictionSet | null;
+  prognostic_estimate?: PrognosticEstimate | null;
+  pathway_candidates?: PathwayCandidates | null;
   modality_value_estimate: Array<{
     modality: string;
     present: boolean;

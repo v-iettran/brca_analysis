@@ -48,17 +48,42 @@ PANEL_GATES = {
         ],
         "reference": "Schubert et al., Nat Commun 2018; Müller-Dott et al., 2023",
     },
-    ("NB13", "conformal_coverage_90"): {
-        "panel": "prediction_set",
-        "plain_language": "A set of agents consistent with the molecular profile — not a ranked recommendation.",
-        "method": "Cross-conformal regression on SCAN-B observed survival events; set membership from target-pathway activity",
+    ("NB13", "conformal_coverage"): {
+        "panel": "prognostic_estimate",
+        "plain_language": "A predicted overall-survival interval from the SCAN-B conformal model.",
+        "method": "MAPIE CrossConformalRegressor on observed SCAN-B OS events (molecular features only; q4 dropped)",
         "known_limitations": [
-            "Endocrine-treatment assignment was dropped from the model after an ER+ refit showed it dominated the weights.",
-            "Molecular signal is weak; wider sets are more honest than a short ranked list.",
+            "The model predicts survival, not drug response. SCAN-B has no per-(patient, drug) labels.",
+            "Coverage was measured on SCAN-B events. Applying the interval to a TCGA sample is a domain transfer.",
+            "Endocrine-treatment assignment was dropped after an ER+ refit showed it dominated the weights.",
         ],
         "reference": None,
     },
 }
+
+# Panels with no validation gate — still listed so the UI cannot imply one.
+UNVALIDATED_PANELS = [
+    {
+        "panel": "pathway_candidates",
+        "plain_language": "Agents whose target pathway shows elevated activity in this sample.",
+        "method": "PROGENy pathway score ≥ 0 on the agent's annotated target pathway",
+        "known_limitations": [
+            "Mechanistic filter only. No outcome validation — SCAN-B has no per-(patient, drug) response labels.",
+            "Not a conformal prediction set. Membership has no coverage property.",
+            "Order is alphabetical and carries no meaning.",
+        ],
+        "reference": "Schubert et al., Nat Commun 2018",
+        "validation": {
+            "metric": None,
+            "value": None,
+            "n": None,
+            "threshold": None,
+            "status": "unvalidated",
+            "revised": False,
+            "revision_note": "No validation gate. This panel is a pathway-activity rule, not a scored model.",
+        },
+    },
+]
 
 
 def latest_gates(path: Path) -> dict[tuple[str, str], dict]:
@@ -70,6 +95,9 @@ def latest_gates(path: Path) -> dict[tuple[str, str], dict]:
             continue
         rec = json.loads(line)
         latest[(rec["notebook"], rec["gate"])] = rec
+    # Regrade rename: prefer conformal_coverage; fall back to the old 90% name.
+    if ("NB13", "conformal_coverage") not in latest and ("NB13", "conformal_coverage_90") in latest:
+        latest[("NB13", "conformal_coverage")] = latest[("NB13", "conformal_coverage_90")]
     return latest
 
 
@@ -103,8 +131,21 @@ def main() -> Path:
                 },
             }
         )
+    entries.extend(UNVALIDATED_PANELS)
+    payload = json.dumps({"generated_from": "reports/gates.jsonl", "entries": entries}, indent=2)
     out = root / "data" / "reference" / "glossary.json"
-    out.write_text(json.dumps({"generated_from": "reports/gates.jsonl", "entries": entries}, indent=2))
+    out.write_text(payload)
+    copies = [
+        Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/person_med_a2/application/apps/api/app/data/glossary.json"),
+        Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/person_med_a2/application/apps/web/src/data/glossary.json"),
+        Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/brca_analysis/application/apps/api/app/data/glossary.json"),
+        Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/brca_analysis/application/apps/web/src/data/glossary.json"),
+        Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/brca_analysis/v2/data/reference/glossary.json"),
+    ]
+    for dest in copies:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(payload)
+        print("copied", dest)
     print("wrote", out, "n=", len(entries))
     return out
 

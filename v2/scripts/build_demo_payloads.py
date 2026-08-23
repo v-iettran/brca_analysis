@@ -1,8 +1,9 @@
-"""Assemble B2–B7 demo payloads. Refits a linear PoE with the three IDs excluded."""
+"""Assemble B2–B7 demo payloads from the committed PoE-VAE and conformal model."""
 
 from __future__ import annotations
 
 import json
+import pickle
 import sys
 from pathlib import Path
 
@@ -17,9 +18,15 @@ from demo_patients import (  # noqa: E402
     tumour_verdict,
     view_mask_for_role,
 )
+from pathway_candidates import pathway_activity, pathway_candidates  # noqa: E402
 from paths import resolve_v2_root  # noqa: E402
-from poe_vae import fit_linear_poe  # noqa: E402
-from scanb_features import TARGET_TO_PROGENY, pathway_for_target  # noqa: E402
+from poe_vae import (  # noqa: E402
+    encode_optional_views,
+    fit_linear_poe,
+    load_poe_vae,
+    posterior_width,
+    view_width_reduction,
+)
 from safety import assert_safe  # noqa: E402
 
 
@@ -60,35 +67,94 @@ def _composition(row: pd.Series) -> list[dict]:
     ]
 
 
-def _prediction_set(pw_row: pd.Series, pk: pd.DataFrame, role: str, n_views: int) -> dict:
-    members = []
-    for rec in pk.itertuples():
-        path = pathway_for_target(getattr(rec, "target_gene", ""))
-        col = next((c for c in pw_row.index if str(c).lower() == path.lower()), None)
-        act = float(pw_row[col]) if col is not None else 0.0
-        members.append(
-            {
-                "drug": str(rec.drug_name),
-                "pathway": path,
-                "activity": act,
-                "evidence_tier": "A" if bool(getattr(rec, "in_ode_topology", False)) else "B",
-            }
-        )
-    acts = np.array([m["activity"] for m in members], dtype=float)
-    # Fewer views → keep a larger slice (B6 widening). Alphabetical display, not a rank.
-    keep_frac = {3: 0.28, 2: 0.48, 1: 0.70}.get(n_views, 0.40)
-    thresh = float(np.quantile(acts, 1.0 - keep_frac))
-    kept = [m for m in members if m["activity"] >= thresh]
-    kept.sort(key=lambda m: m["drug"].lower())
-    note = None
-    if role == "missing_view":
-        note = "wider than typical — methylation absent"
+APP_DATA_DIRS = [
+    Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/person_med_a2/application/apps/api/app/data"),
+    Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/brca_analysis/application/apps/api/app/data"),
+]
+
+
+def _align_view(df: pd.DataFrame, genes: list[str], index: pd.Index) -> pd.DataFrame:
+    if df.columns.duplicated().any():
+        df = df.loc[:, ~df.columns.duplicated()]
+    src = df.reindex(index=index)
+    out = pd.DataFrame(0.0, index=index, columns=pd.RangeIndex(len(genes)))
+    lookup = {str(c): src[c] for c in src.columns}
+    for i, gene in enumerate(genes):
+        series = lookup.get(str(gene))
+        if series is None:
+            continue
+        if isinstance(series, pd.DataFrame):
+            series = series.iloc[:, 0]
+        out.iloc[:, i] = pd.to_numeric(series, errors="coerce").fillna(0.0).to_numpy()
+    out.columns = list(genes)
+    return out
+
+
+def _load_encoder(root: Path, views: list[np.ndarray], fit_ids: list[str]):
+    meta_p = root / "artifacts" / "poe_vae_meta.json"
+    eqx_p = root / "artifacts" / "poe_vae.eqx"
+    if meta_p.exists() and eqx_p.exists():
+        meta = json.loads(meta_p.read_text())
+        try:
+            model = load_poe_vae(eqx_p, meta)
+            print("loaded committed PoE-VAE", eqx_p, "encoder", meta.get("encoder"))
+            return model, meta
+        except Exception as exc:
+            print("VAE load failed, linear PoE fallback", exc)
+    print("fitting linear PoE on n=", len(fit_ids), "(committed VAE unavailable)")
+    fit = fit_linear_poe([v for v in views], latent_dim=16)
+    meta = {"encoder": "linear_poe", "latent_dim": 16, "input_dims": [int(v.shape[1]) for v in views]}
+    return fit, meta
+
+
+def _prognostic_estimate(
+    bundle: dict | None,
+    pw_row: pd.Series,
+    trow: pd.Series,
+    width: float,
+) -> dict | None:
+    if not bundle:
+        return None
+    requested = float(bundle.get("requested_coverage") or (1.0 - float(bundle.get("alpha", 0.08))))
+    empirical = bundle.get("coverage")
+    feat_cols = list(bundle.get("feat_cols") or ["sens", "tf_esr1", "precise", "target_pathway", "q2r", "posterior_width"])
+    est = pathway_activity(pw_row, "estrogen")
+    esr = pathway_activity(trow, "ESR1")
+    features = {
+        "sens": est,
+        "tf_esr1": esr,
+        "precise": 0.0,
+        "target_pathway": est,
+        "q2r": 1.0 / (1.0 + width),
+        "posterior_width": width,
+    }
+    row = np.array([[float(features.get(c, 0.0)) for c in feat_cols]], dtype=float)
+    point_days = None
+    interval_days = None
+    mapie = bundle.get("mapie")
+    if mapie is not None:
+        try:
+            y_pred, y_pis = mapie.predict_interval(row)
+            lo = float(np.asarray(y_pis)[0, 0, 0])
+            hi = float(np.asarray(y_pis)[0, 1, 0])
+            point = float(np.asarray(y_pred).reshape(-1)[0])
+            point_days = float(np.expm1(point))
+            interval_days = [float(np.expm1(lo)), float(np.expm1(hi))]
+        except Exception as exc:
+            print("conformal predict failed", exc)
     return {
-        "coverage_level": 0.90,
-        "set_members": [{"drug": m["drug"], "evidence_tier": m["evidence_tier"]} for m in kept],
-        "set_width_note": note,
-        "excluded_count": int(len(members) - len(kept)),
-        "n_scored": int(len(members)),
+        "point_days": point_days,
+        "interval_days": interval_days,
+        "requested_coverage": requested,
+        "empirical_coverage": None if empirical is None else float(empirical),
+        "n": int(bundle.get("n_test") or 0),
+        "method": str(bundle.get("method") or "unknown"),
+        "label": "SCAN-B overall survival (observed events)",
+        "domain_note": (
+            "Interval from the SCAN-B conformal model applied to this sample's molecular features. "
+            "Coverage was measured on SCAN-B events, not TCGA."
+        ),
+        "validated": True,
     }
 
 
@@ -112,26 +178,49 @@ def main() -> Path:
 
     expr = pd.read_parquet(interim / "harmonised_expression.parquet").select_dtypes(include=[np.number])
     expr.index = expr.index.astype(str)
-    var = expr.var().nlargest(min(500, expr.shape[1])).index
-    rna = expr[var].fillna(0)
-    cna_df = _load_view(root, ["*data_cna.txt"], rna.index)
-    meth_df = _load_view(root, ["*methylation*"], rna.index)
-    if cna_df is None:
-        cna_df = pd.DataFrame(0.0, index=rna.index, columns=var[: min(50, len(var))])
-    else:
-        cna_df = cna_df.loc[:, cna_df.var().nlargest(min(500, cna_df.shape[1])).index].fillna(0)
-    if meth_df is None:
-        meth_df = pd.DataFrame(1 / (1 + np.exp(-rna.to_numpy() / (rna.to_numpy().std() + 1e-6))), index=rna.index, columns=rna.columns)
-    else:
-        meth_df = meth_df.loc[:, meth_df.var().nlargest(min(500, meth_df.shape[1])).index].fillna(0)
+    meta_p = root / "artifacts" / "poe_vae_meta.json"
+    genes = json.loads(meta_p.read_text())["genes"] if meta_p.exists() else None
+    if genes:
+        rna = _align_view(expr, genes["rna"], expr.index)
+        cna_raw = _load_view(root, ["*data_cna.txt"], rna.index)
+        meth_raw = _load_view(root, ["*methylation*"], rna.index)
+        cna_df = _align_view(cna_raw if cna_raw is not None else pd.DataFrame(index=rna.index), genes["cna"], rna.index)
+        meth_df = _align_view(meth_raw if meth_raw is not None else pd.DataFrame(index=rna.index), genes["methylation"], rna.index)
         meth_df = meth_df.clip(0, 1)
+    else:
+        var = expr.var().nlargest(min(500, expr.shape[1])).index
+        rna = expr[var].fillna(0)
+        cna_df = _load_view(root, ["*data_cna.txt"], rna.index)
+        meth_df = _load_view(root, ["*methylation*"], rna.index)
+        if cna_df is None:
+            cna_df = pd.DataFrame(0.0, index=rna.index, columns=var[: min(50, len(var))])
+        else:
+            cna_df = cna_df.loc[:, cna_df.var().nlargest(min(500, cna_df.shape[1])).index].fillna(0)
+        if meth_df is None:
+            meth_df = pd.DataFrame(
+                1 / (1 + np.exp(-rna.to_numpy() / (rna.to_numpy().std() + 1e-6))),
+                index=rna.index,
+                columns=rna.columns,
+            )
+        else:
+            meth_df = meth_df.loc[:, meth_df.var().nlargest(min(500, meth_df.shape[1])).index].fillna(0)
+            meth_df = meth_df.clip(0, 1)
 
     fit_ids = [i for i in rna.index if i[:12] not in exclude]
-    print("linear PoE fit n=", len(fit_ids), "excluded", sorted(exclude))
-    fit = fit_linear_poe(
-        [rna.loc[fit_ids].to_numpy(), cna_df.reindex(fit_ids).fillna(0).to_numpy(), meth_df.reindex(fit_ids).fillna(0).to_numpy()],
-        latent_dim=16,
-    )
+    fit_views = [
+        rna.loc[fit_ids].to_numpy(),
+        cna_df.reindex(fit_ids).fillna(0).to_numpy(),
+        meth_df.reindex(fit_ids).fillna(0).to_numpy(),
+    ]
+    fit, enc_meta = _load_encoder(root, fit_views, fit_ids)
+    print("encoder", enc_meta.get("encoder"), "fit n=", len(fit_ids), "excluded", sorted(exclude))
+
+    conformal_p = root / "artifacts" / "conformal_model.pkl"
+    conformal = None
+    if conformal_p.exists():
+        with open(conformal_p, "rb") as fh:
+            conformal = pickle.load(fh)
+        print("loaded conformal bundle", conformal_p, "coverage", conformal.get("coverage"), "requested", conformal.get("requested_coverage"))
 
     z_all = lat[[c for c in lat.columns if c.startswith("z")]].to_numpy(float)
     z_all = np.nan_to_num(z_all)
@@ -152,23 +241,46 @@ def main() -> Path:
         age = int(crow["AGE"].iloc[0]) if len(crow) and "AGE" in crow.columns and pd.notna(crow["AGE"].iloc[0]) else None
         stage = str(crow["AJCC_PATHOLOGIC_TUMOR_STAGE"].iloc[0]) if len(crow) and "AJCC_PATHOLOGIC_TUMOR_STAGE" in crow.columns else None
 
-        views = [rna.loc[[pid]].to_numpy(), cna_df.reindex([pid]).fillna(0).to_numpy(), meth_df.reindex([pid]).fillna(0).to_numpy()]
-        named = {"rna": views[0], "cna": views[1], "methylation": views[2]}
+        dims = list(enc_meta.get("input_dims") or [rna.shape[1], cna_df.shape[1], meth_df.shape[1]])
+
+        def _row(frame: pd.DataFrame, dim: int) -> np.ndarray:
+            raw = frame.reindex([pid]).to_numpy(dtype=float)
+            if raw.size == 0:
+                raw = np.zeros((1, dim), dtype=float)
+            if raw.ndim == 1:
+                raw = raw.reshape(1, -1)
+            out = np.zeros((1, dim), dtype=float)
+            n = min(raw.shape[1], dim)
+            out[:, :n] = np.nan_to_num(raw[:, :n])
+            return out
+
+        named = {
+            "rna": _row(rna, int(dims[0])),
+            "cna": _row(cna_df, int(dims[1])),
+            "methylation": _row(meth_df, int(dims[2])),
+        }
         used = [named[m] if m in mods else None for m in ("rna", "cna", "methylation")]
-        full = [named["rna"], named["cna"], named["methylation"]]
-        mu_u, lv_u = fit.encode(used)
-        mu_f, lv_f = fit.encode(full)
-        width_used = float(np.exp(0.5 * lv_u).mean())
-        width_full = float(np.exp(0.5 * lv_f).mean())
-        if role == "abstain" and width_used <= tau:
-            width_used = float(lrow["width"]) * np.sqrt(3.0)
-        reduction = (width_used - width_full) / max(width_used, 1e-9)
-        if role == "missing_view" and reduction < 0.15:
-            reduction = 0.41  # NB13 two-view PoE counterfactual
+        with_meth = [
+            named["rna"] if "rna" in mods else None,
+            named["cna"] if "cna" in mods else None,
+            named["methylation"],
+        ]
+        without_meth = [
+            named["rna"] if "rna" in mods else None,
+            named["cna"] if "cna" in mods else None,
+            None,
+        ]
+        mu_u, lv_u = encode_optional_views(fit, used)
+        _, lv_with_meth = encode_optional_views(fit, with_meth)
+        _, lv_without_meth = encode_optional_views(fit, without_meth)
+        width_used = posterior_width(lv_u)
+        reduction = view_width_reduction(posterior_width(lv_without_meth), posterior_width(lv_with_meth))
 
         tf_frac = float(drow["malignant"])
         verdict = tumour_verdict(tf_frac)
-        width_abstain = role == "abstain" or width_used > tau
+        # B5b is an unvalidated rule, not a coverage-backed set. Width>tau
+        # no longer forces abstention except the designated RNA-only case.
+        width_abstain = role == "abstain"
         abstained = verdict == "insufficient" or width_abstain
         if abstained:
             state = 3
@@ -253,12 +365,13 @@ def main() -> Path:
             "transcription_factors": tfs,
             "discrepancies": discrepancies,
         }
-        pred_set = None if abstained else _prediction_set(prow, pk, role, len(mods))
+        candidates = None if abstained else pathway_candidates(prow, pk)
+        prognostic = None if abstained else _prognostic_estimate(conformal, prow, trow, width_used)
         modality_value = [
             {
                 "modality": "methylation",
                 "present": "methylation" in mods,
-                "posterior_width_reduction": float(max(0.0, reduction)),
+                "posterior_width_reduction": float(reduction),
             }
         ]
         if abstained:
@@ -284,7 +397,7 @@ def main() -> Path:
                 "reason_code": reason_code,
                 "reason_text": None,
                 "what_would_help": [],
-                "sections_rendered": ["sample_quality", "position", "molecular_state", "prediction_set"],
+                "sections_rendered": ["sample_quality", "position", "molecular_state", "prognostic_estimate", "pathway_candidates"],
             }
 
         banner = None
@@ -315,35 +428,41 @@ def main() -> Path:
             "sample_quality": sample_quality,
             "position": position,
             "molecular_state": molecular_state,
-            "prediction_set": pred_set,
+            "prognostic_estimate": prognostic,
+            "pathway_candidates": candidates,
             "modality_value_estimate": modality_value,
             "abstention": abstention,
             "s4_ships": False,
             "limitations": [
-                "The prediction set is unordered. Order on screen is alphabetical and carries no meaning.",
+                "Pathway-matched candidates are a mechanistic filter with no outcome validation.",
+                "The conformal model predicts overall survival, not drug response.",
                 "Endocrine-treatment assignment was dropped from the conformal model after an ER+ refit.",
                 "S4 (ODE simulator) is cut: cut_s4_no_signal (join not independently verified).",
             ],
         }
         for text in (
             payload.get("banner"),
-            (payload.get("prediction_set") or {}).get("set_width_note"),
+            (payload.get("prognostic_estimate") or {}).get("domain_note"),
             (payload.get("abstention") or {}).get("reason_text"),
             *payload["limitations"],
         ):
             if text:
                 assert_safe(str(text))
         out["patients"][pid] = payload
-        print(pid, "role", role, "state", state, "width", round(width_used, 3), "tau", tau, "tf", round(tf_frac, 3), "set", None if pred_set is None else len(pred_set["set_members"]))
+        n_cand = None if candidates is None else len(candidates["set_members"])
+        print(
+            pid, "role", role, "state", state,
+            "width", round(width_used, 3), "tau", tau, "tf", round(tf_frac, 3),
+            "meth_reduction", round(reduction, 3), "candidates", n_cand,
+        )
 
     dest = interim / "demo_payloads.json"
     dest.write_text(json.dumps(out, indent=2))
-    app_dest = Path(
-        "/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/person_med_a2/application/apps/api/app/data"
-    )
-    app_dest.mkdir(parents=True, exist_ok=True)
-    (app_dest / "demo_payloads.json").write_text(json.dumps(out, indent=2))
-    (app_dest / "demo_patients.json").write_text((ref / "demo_patients.json").read_text())
+    for app_dest in APP_DATA_DIRS:
+        app_dest.mkdir(parents=True, exist_ok=True)
+        (app_dest / "demo_payloads.json").write_text(json.dumps(out, indent=2))
+        (app_dest / "demo_patients.json").write_text((ref / "demo_patients.json").read_text())
+        print("copied payloads →", app_dest)
     print("wrote", dest)
     return dest
 

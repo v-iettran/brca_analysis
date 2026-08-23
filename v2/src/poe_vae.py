@@ -195,3 +195,43 @@ else:  # pragma: no cover
 
     def train_poe_vae(*args, **kwargs):
         raise ImportError("JAX/Equinox not installed; use fit_linear_poe or MOFA+")
+
+
+def posterior_width(logvar: np.ndarray) -> float:
+    """Mean per-dimension posterior std from joint log-variance."""
+    return float(np.exp(0.5 * np.asarray(logvar)).mean())
+
+
+def encode_optional_views(model, views: list[np.ndarray | None]) -> tuple[np.ndarray, np.ndarray]:
+    """PoE encode a batch, treating None as a missing view (mask=0)."""
+    if isinstance(model, NumpyPoEFit):
+        return model.encode(views)
+    if not HAS_JAX:
+        raise ImportError("JAX/Equinox not installed")
+    batch = next(v.shape[0] for v in views if v is not None)
+    mus, logvars, mask = [], [], []
+    for i, view in enumerate(views):
+        if view is None:
+            mus.append(np.zeros((batch, model.latent_dim)))
+            logvars.append(np.zeros((batch, model.latent_dim)))
+            mask.append(np.zeros((batch, 1)))
+        else:
+            mu, lv = model.encode_view(i, jnp.asarray(view, dtype=jnp.float32))
+            mus.append(np.asarray(mu))
+            logvars.append(np.asarray(lv))
+            mask.append(np.ones((batch, 1)))
+    return product_of_experts(np.stack(mus, 0), np.stack(logvars, 0), np.stack(mask, 0))
+
+
+def load_poe_vae(path, meta: dict):
+    """Rebuild a serialised Equinox PoE-VAE from leaves + architecture meta."""
+    if not HAS_JAX:
+        raise ImportError("JAX/Equinox not installed")
+    key = jax.random.PRNGKey(0)
+    like = PoEVAE(list(meta["input_dims"]), int(meta["latent_dim"]), key)
+    return eqx.tree_deserialise_leaves(path, like)
+
+
+def view_width_reduction(width_without: float, width_with: float) -> float:
+    """Fractional narrowing from adding a view. Real PoE numbers only — no lookup table."""
+    return float((width_without - width_with) / max(width_without, 1e-9))

@@ -29,10 +29,10 @@
       "reference": "Wu & Goodman, NeurIPS 2018",
       "validation": {
         "metric": "vae_vs_mofa_heldout_nll",
-        "value": 0.0525413245831321,
+        "value": 0.05649557728015053,
         "n": 3062,
         "threshold": 0.0,
-        "status": "pass",
+        "status": "provisional_pass",
         "revised": false,
         "revision_note": null
       }
@@ -74,22 +74,43 @@
       }
     },
     {
-      "panel": "prediction_set",
-      "plain_language": "A set of agents consistent with the molecular profile \u2014 not a ranked recommendation.",
-      "method": "Cross-conformal regression on SCAN-B observed survival events; set membership from target-pathway activity",
+      "panel": "prognostic_estimate",
+      "plain_language": "A predicted overall-survival interval from the SCAN-B conformal model.",
+      "method": "MAPIE CrossConformalRegressor on observed SCAN-B OS events (molecular features only; q4 dropped)",
       "known_limitations": [
-        "Endocrine-treatment assignment was dropped from the model after an ER+ refit showed it dominated the weights.",
-        "Molecular signal is weak; wider sets are more honest than a short ranked list."
+        "The model predicts survival, not drug response. SCAN-B has no per-(patient, drug) labels.",
+        "Coverage was measured on SCAN-B events. Applying the interval to a TCGA sample is a domain transfer.",
+        "Endocrine-treatment assignment was dropped after an ER+ refit showed it dominated the weights."
       ],
       "reference": null,
       "validation": {
-        "metric": "conformal_coverage_90",
-        "value": 0.005660377358490565,
+        "metric": "conformal_coverage",
+        "value": 0.014339622641509453,
         "n": 106,
         "threshold": 0.02,
         "status": "pass",
         "revised": false,
         "revision_note": null
+      }
+    },
+    {
+      "panel": "pathway_candidates",
+      "plain_language": "Agents whose target pathway shows elevated activity in this sample.",
+      "method": "PROGENy pathway score \u2265 0 on the agent's annotated target pathway",
+      "known_limitations": [
+        "Mechanistic filter only. No outcome validation \u2014 SCAN-B has no per-(patient, drug) response labels.",
+        "Not a conformal prediction set. Membership has no coverage property.",
+        "Order is alphabetical and carries no meaning."
+      ],
+      "reference": "Schubert et al., Nat Commun 2018",
+      "validation": {
+        "metric": null,
+        "value": null,
+        "n": null,
+        "threshold": null,
+        "status": "unvalidated",
+        "revised": false,
+        "revision_note": "No validation gate. This panel is a pathway-activity rule, not a scored model."
       }
     }
   ]

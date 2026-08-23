@@ -436,7 +436,7 @@ def _run_prototype_on_run(db: Session, run: AnalysisRun, patient_id: str) -> Ana
         "encode_latent": "position",
         "infer_activity": "molecular_state",
         "project_sensitivity": "modality_value_estimate",
-        "calibrate_set": "prediction_set",
+        "calibrate_set": "pathway_candidates",
     }
     for stage_id, label in STAGES:
         _set_stage(db, run, stage_id, label, "running")

@@ -73,10 +73,23 @@ class SetMember(BaseModel):
     evidence_tier: str = "B"
 
 
-class PredictionSet(BaseModel):
-    coverage_level: float = 0.90
+class PrognosticEstimate(BaseModel):
+    point_days: float | None = None
+    interval_days: list[float] | None = None
+    requested_coverage: float
+    empirical_coverage: float | None = None
+    n: int = 0
+    method: str
+    label: str = "SCAN-B overall survival (observed events)"
+    domain_note: str
+    validated: bool = True
+
+
+class PathwayCandidates(BaseModel):
+    basis: Literal["pathway_activity_threshold"] = "pathway_activity_threshold"
+    validated: bool = False
+    threshold_rule: str = "target_pathway_activity >= 0"
     set_members: list[SetMember] = Field(default_factory=list)
-    set_width_note: str | None = None
     excluded_count: int = 0
     n_scored: int | None = None
 
@@ -108,7 +121,8 @@ class PrototypePayload(BaseModel):
     sample_quality: SampleQuality
     position: PatientPosition
     molecular_state: MolecularState
-    prediction_set: PredictionSet | None = None
+    prognostic_estimate: PrognosticEstimate | None = None
+    pathway_candidates: PathwayCandidates | None = None
     modality_value_estimate: list[ModalityValue] = Field(default_factory=list)
     abstention: AbstentionState
     s4_ships: bool = False

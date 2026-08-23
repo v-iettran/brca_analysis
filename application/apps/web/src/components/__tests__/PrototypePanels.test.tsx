@@ -5,11 +5,13 @@ import { SampleQualityPanel } from "@/components/SampleQualityPanel";
 import { AbstentionPanel } from "@/components/AbstentionPanel";
 
 describe("PredictionSetPanel", () => {
-  it("states that the set is not a ranking", () => {
+  it("labels candidates as an unvalidated pathway filter", () => {
     render(
       <PredictionSetPanel
         data={{
-          coverage_level: 0.9,
+          basis: "pathway_activity_threshold",
+          validated: false,
+          threshold_rule: "target_pathway_activity >= 0",
           set_members: [
             { drug: "Fulvestrant", evidence_tier: "B" },
             { drug: "Palbociclib", evidence_tier: "A" },
@@ -19,8 +21,9 @@ describe("PredictionSetPanel", () => {
         }}
       />
     );
-    expect(screen.getByText(/Set, not a ranking — order carries no meaning/i)).toBeInTheDocument();
+    expect(screen.getByText(/target pathway shows elevated activity/i)).toBeInTheDocument();
     expect(screen.getByText(/2 of 35 agents/i)).toBeInTheDocument();
+    expect(screen.queryByText(/coverage/i)).not.toBeInTheDocument();
   });
 });
 

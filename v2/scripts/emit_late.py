@@ -910,13 +910,15 @@ def nb13():
 
 S1–S3a + S5 only. S3b is cut; S4 does not enter the feature vector.
 **Target:** SCAN-B overall survival. Censored times are **not** treated as observed.
-**Gate:** |empirical 90% coverage − 0.90| ≤ 0.02 on observed events.
+**Gate:** |empirical coverage − requested coverage| ≤ 0.02 on observed events.
+Requested coverage is the MAPIE `confidence_level`, not a leftover 90% nominal.
 v1 Q5 weights `0.60/0.25/0.15` are the Bayesian prior; the posterior is reported.
         """),
         code(BOOT),
         code("""
-# Config
-ALPHA = 0.10
+# Config — grade against the coverage that was actually requested
+REQUESTED_COVERAGE = 0.92
+ALPHA = 1.0 - REQUESTED_COVERAGE
 COVER_TOL = 0.02
 from fusion import (
     V1_SINGLE_WEIGHTS, v1_nested_score, empirical_coverage,
@@ -1118,7 +1120,7 @@ try:
     from sklearn.ensemble import GradientBoostingRegressor
     base = GradientBoostingRegressor(random_state=0, max_depth=2)
     mapie = CrossConformalRegressor(
-        estimator=base, confidence_level=0.92, method="plus", cv=5, random_state=0,
+        estimator=base, confidence_level=REQUESTED_COVERAGE, method="plus", cv=5, random_state=0,
     )
     mapie.fit_conformalize(Xtr, ytr)
     y_pred, y_pis = mapie.predict_interval(Xte)
@@ -1142,7 +1144,9 @@ for p in sorted(set(pte)):
 print("coverage", cov, "n_test", len(yte), "n_train", len(ytr), "method", method, "by_platform", by_plat)
 with open(ARTIFACTS / "conformal_model.pkl", "wb") as f:
     pickle.dump({
-        "coverage": cov, "alpha": ALPHA, "method": method, "n_train": int(len(ytr)), "n_test": int(len(yte)),
+        "mapie": mapie,
+        "coverage": cov, "requested_coverage": REQUESTED_COVERAGE, "alpha": ALPHA,
+        "method": method, "n_train": int(len(ytr)), "n_test": int(len(yte)),
         "v1_prior": V1_SINGLE_WEIGHTS, "v1_posterior": fitted_w, "v1_shift": shift,
         "feat_cols": feat_cols, "by_platform": by_plat, "diagnosis": diag,
         "q4_dropped": True, "shipped_streams": "molecular",
@@ -1155,12 +1159,12 @@ events.to_parquet(INTERIM / "NB13_fusion_table.parquet")
 }, indent=2))
         """),
         code("""
-# GATE — coverage on observed events only; do not lower the 2% band
+# GATE — coverage on observed events only; grade against requested, not a leftover 90%
 n_te = int(len(yte))
 thin = n_te < 50
-gate("NB13", "conformal_coverage_90", float(abs(cov - (1 - ALPHA))), COVER_TOL, direction="lte",
+gate("NB13", "conformal_coverage", float(abs(cov - REQUESTED_COVERAGE)), COVER_TOL, direction="lte",
      n=n_te, min_n=50, insufficient_data=thin, smoke_test=False,
-     note=(f"empirical={cov:.3f} nominal=0.90 requested=0.92 method={method} events_only=1 "
+     note=(f"empirical={cov:.3f} requested={REQUESTED_COVERAGE:.2f} method={method} events_only=1 "
            f"n_train={len(ytr)} by_platform={by_plat} v1_shift={shift} q4_dropped=1 "
            f"SCAN-B={'OS events' if scanb_used else 'synthetic'}"))
         """),

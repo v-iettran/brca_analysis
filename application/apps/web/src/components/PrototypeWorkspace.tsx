@@ -5,6 +5,7 @@ import { AbstentionPanel } from "@/components/AbstentionPanel";
 import { MolecularStatePanel } from "@/components/MolecularStatePanel";
 import { PatientPositionPanel } from "@/components/PatientPositionPanel";
 import { PredictionSetPanel } from "@/components/PredictionSetPanel";
+import { PrognosticEstimatePanel } from "@/components/PrognosticEstimatePanel";
 import { SampleQualityPanel } from "@/components/SampleQualityPanel";
 
 export function PrototypeWorkspace({ payload }: { payload: PrototypePayload }) {
@@ -28,9 +29,12 @@ export function PrototypeWorkspace({ payload }: { payload: PrototypePayload }) {
       {abstained ? (
         <AbstentionPanel data={payload.abstention} />
       ) : (
-        payload.prediction_set && (
-          <PredictionSetPanel data={payload.prediction_set} methylationNote={methNote} />
-        )
+        <>
+          {payload.prognostic_estimate && <PrognosticEstimatePanel data={payload.prognostic_estimate} />}
+          {payload.pathway_candidates && (
+            <PredictionSetPanel data={payload.pathway_candidates} methylationNote={methNote} />
+          )}
+        </>
       )}
     </div>
   );

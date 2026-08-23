@@ -84,7 +84,7 @@ def result_fields_from_prototype(payload: dict) -> dict:
             "headline_nominations": [],
             "dominant_uncertainty": (payload.get("abstention") or {}).get("reason_text")
             or payload.get("banner")
-            or "Set, not a ranking — order carries no meaning.",
+            or "Pathway-matched candidates are a mechanistic filter, not a ranked drug list.",
         },
         "limitations": payload.get("limitations") or [],
         "top_candidate_drugs": [],

@@ -893,20 +893,26 @@ else:
     expr.index = expr.index.astype(str)
     # top variable genes for a tractable encoder
     var = expr.var().nlargest(min(500, expr.shape[1])).index
+    rna_genes = [str(c) for c in var]
     rna = expr[var].fillna(0).to_numpy()
     cna = load_view(["*data_cna.txt"], expr.index)
     meth = load_view(["*methylation*"], expr.index)
     if cna is not None:
-        cna = cna.loc[:, cna.var().nlargest(min(500, cna.shape[1])).index].fillna(0).to_numpy()
+        cna_genes = [str(c) for c in cna.var().nlargest(min(500, cna.shape[1])).index]
+        cna = cna.loc[:, cna_genes].fillna(0).to_numpy()
     else:
+        cna_genes = list(rna_genes)
         cna = np.zeros_like(rna)
     if meth is not None:
-        meth = meth.loc[:, meth.var().nlargest(min(500, meth.shape[1])).index].fillna(0).to_numpy()
+        meth_genes = [str(c) for c in meth.var().nlargest(min(500, meth.shape[1])).index]
+        meth = meth.loc[:, meth_genes].fillna(0).to_numpy()
         meth = np.clip(meth, 0, 1)
     else:
+        meth_genes = list(rna_genes)
         meth = np.clip(1 / (1 + np.exp(-rna / (rna.std() + 1e-6))), 0, 1)  # placeholder beta-like
         print("methylation missing; using logistic(RNA) placeholder so the PoE code path runs")
     views = [rna, cna, meth]
+    view_genes = {"rna": rna_genes, "cna": cna_genes, "methylation": meth_genes}
     ids = expr.index.to_numpy()
         """),
         code("""
@@ -974,6 +980,13 @@ if views is not None:
             used = "jax_poe_vae"
             try:
                 eqx.tree_serialise_leaves(ARTIFACTS / "poe_vae.eqx", model)
+                import json as _json
+                (ARTIFACTS / "poe_vae_meta.json").write_text(_json.dumps({
+                    "encoder": used,
+                    "latent_dim": LATENT_DIM,
+                    "input_dims": [int(v.shape[1]) for v in views],
+                    "genes": view_genes,
+                }, indent=2))
             except Exception:
                 pass
         except Exception as e:
@@ -991,6 +1004,13 @@ if views is not None:
         vae_nll = float(np.mean(recs))
         used = "linear_poe"
         mu_all, lv_all = fit.encode(views)
+        import json as _json
+        (ARTIFACTS / "poe_vae_meta.json").write_text(_json.dumps({
+            "encoder": used,
+            "latent_dim": LATENT_DIM,
+            "input_dims": [int(v.shape[1]) for v in views],
+            "genes": view_genes,
+        }, indent=2))
     else:
         # encode all samples with the trained model for NB05
         mus, lvs = [], []

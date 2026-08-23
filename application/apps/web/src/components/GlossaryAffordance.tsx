@@ -10,10 +10,10 @@ type GlossaryEntry = {
   known_limitations: string[];
   reference?: string | null;
   validation: {
-    metric: string;
-    value: number | null;
-    n: number | null;
-    threshold: number | null;
+    metric?: string | null;
+    value?: number | null;
+    n?: number | null;
+    threshold?: number | null;
     status: string;
     revised: boolean;
     revision_note?: string | null;
@@ -52,7 +52,9 @@ export function GlossaryAffordance({ panel }: { panel: string }) {
               <div className="flex justify-between gap-4">
                 <dt className="text-slate-500">Validation</dt>
                 <dd className="font-medium text-slate-900">
-                  {entry.validation.metric} · {entry.validation.status}
+                  {entry.validation.status === "unvalidated"
+                    ? "No validation gate"
+                    : `${entry.validation.metric ?? "—"} · ${entry.validation.status}`}
                   {entry.validation.n != null ? ` · n=${entry.validation.n}` : ""}
                 </dd>
               </div>

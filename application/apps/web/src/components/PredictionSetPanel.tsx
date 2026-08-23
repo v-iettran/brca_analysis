@@ -1,13 +1,13 @@
 "use client";
 
-import type { PredictionSet } from "@/lib/types";
+import type { PathwayCandidates } from "@/lib/types";
 import { GlossaryAffordance } from "@/components/GlossaryAffordance";
 
 export function PredictionSetPanel({
   data,
   methylationNote,
 }: {
-  data: PredictionSet;
+  data: PathwayCandidates;
   methylationNote?: string | null;
 }) {
   const total = (data.n_scored ?? data.set_members.length + data.excluded_count) || data.set_members.length;
@@ -16,18 +16,20 @@ export function PredictionSetPanel({
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">4 · Prediction set</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            5 · Pathway-matched candidates
+          </p>
           <h2 className="mt-1 text-lg font-semibold text-slate-950">
             {data.set_members.length} of {total} agents
           </h2>
           <p className="mt-2 text-sm font-medium text-slate-800">
-            Set, not a ranking — order carries no meaning.
+            Agents whose target pathway shows elevated activity in this sample.
           </p>
+          <p className="mt-1 text-sm text-slate-600">Order carries no meaning — list is alphabetical.</p>
         </div>
-        <GlossaryAffordance panel="prediction_set" />
+        <GlossaryAffordance panel="pathway_candidates" />
       </header>
-      {data.set_width_note && <p className="mt-3 text-sm text-amber-800">{data.set_width_note}</p>}
-      {methylationNote && <p className="mt-1 text-sm text-slate-600">{methylationNote}</p>}
+      {methylationNote && <p className="mt-3 text-sm text-slate-600">{methylationNote}</p>}
       <ul className="mt-4 flex flex-wrap gap-2">
         {data.set_members.map((member) => (
           <li
@@ -42,7 +44,8 @@ export function PredictionSetPanel({
         ))}
       </ul>
       <p className="mt-4 text-xs text-slate-500">
-        Coverage level {(data.coverage_level * 100).toFixed(0)}%. {data.excluded_count} agents outside the set.
+        Mechanistic filter ({data.threshold_rule}). No outcome validation. {data.excluded_count} agents
+        below the activity threshold.
       </p>
     </section>
   );

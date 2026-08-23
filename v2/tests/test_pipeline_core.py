@@ -463,3 +463,57 @@ def test_tumour_verdict_and_demo_exclude():
     assert tumour_verdict(0.19) == "insufficient"
     assert is_excluded("TCGA-A2-A04V-01", ["TCGA-A2-A04V"])
     assert not is_excluded("TCGA-E2-A15J", ["TCGA-A2-A04V"])
+
+
+def test_pathway_candidates_are_a_rule_not_a_coverage_set():
+    from pathway_candidates import pathway_candidates
+    from poe_vae import view_width_reduction
+
+    pk = pd.DataFrame(
+        {
+            "drug_name": ["afatinib", "fulvestrant", "palbociclib"],
+            "target_gene": ["EGFR", "ESR1", "CDK4"],
+            "in_ode_topology": [True, True, False],
+        }
+    )
+    pw = pd.Series({"EGFR": 0.4, "Estrogen": -0.2, "p53": 1.1})
+    out = pathway_candidates(pw, pk)
+    assert out["basis"] == "pathway_activity_threshold"
+    assert out["validated"] is False
+    assert "coverage_level" not in out
+    names = [m["drug"] for m in out["set_members"]]
+    assert names == ["afatinib", "palbociclib"]
+    assert view_width_reduction(1.0, 0.6) == pytest.approx(0.4)
+    assert view_width_reduction(0.50, 0.50) == pytest.approx(0.0)
+
+
+def test_glossary_emits_unvalidated_pathway_panel(tmp_path, monkeypatch):
+    sys_path = Path(__file__).resolve().parents[1] / "scripts"
+    import sys
+
+    sys.path.insert(0, str(sys_path))
+    import emit_glossary
+
+    gates = tmp_path / "gates.jsonl"
+    gates.write_text(
+        json.dumps(
+            {
+                "notebook": "NB13",
+                "gate": "conformal_coverage",
+                "value": 0.014,
+                "threshold": 0.02,
+                "status": "pass",
+                "passed": True,
+                "n": 106,
+                "note": "empirical=0.906 requested=0.92",
+            }
+        )
+        + "\n"
+    )
+    latest = emit_glossary.latest_gates(gates)
+    assert ("NB13", "conformal_coverage") in latest
+    panels = {row["panel"] for row in emit_glossary.UNVALIDATED_PANELS}
+    assert "pathway_candidates" in panels
+    unval = emit_glossary.UNVALIDATED_PANELS[0]["validation"]
+    assert unval["status"] == "unvalidated"
+    assert unval["metric"] is None
