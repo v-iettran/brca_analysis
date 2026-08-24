@@ -461,6 +461,8 @@ export interface AnalysisResult {
   error_message?: string | null;
   current_stage?: string | null;
   prototype?: PrototypePayload | null;
+  v3_cohort?: import("./v3-types").V3CohortPayload | null;
+  v3_patient?: import("./v3-types").V3PatientPayload | null;
   schema_version?: string | null;
   s4_ships?: boolean;
 }

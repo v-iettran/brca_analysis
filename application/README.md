@@ -1,6 +1,8 @@
-# MOFA-Guided Oncology Research Copilot
+# Research copilot (v3 cluster-first workspace)
 
-A local-first **FastAPI + Next.js** research prototype that turns a single patient's RNA + metadata into transparent drug-overlap nominations, Q2/predictor context, literature, and clinical-trial evidence.
+A local-first **FastAPI + Next.js** research prototype. Demo analyses now render the
+**v3 cluster-first interface** (structure-selected *k*, measured GDSC curves) when
+`apps/api/app/data/v3/` payloads are present.
 
 **This is a research demo, not a clinical decision-support tool.** See [`docs/mofa_copilot/LIMITATIONS.md`](docs/mofa_copilot/LIMITATIONS.md).
 
@@ -45,8 +47,8 @@ application/
 ## 1. Clone the repo
 
 ```bash
-git clone https://github.com/Lifework-Health/person_med_a2.git
-cd person_med_a2
+# from this repository (final-project)
+cd application
 ```
 
 ## 2. Runtime artifacts (read this first)

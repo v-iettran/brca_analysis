@@ -3,6 +3,10 @@
 Each notebook is a stage. They talk **only through files** under `v2/data/`
 and `v2/artifacts/`. Do not import one notebook from another.
 
+v3 cluster-first notebooks live in `notebooks/v3/` (A1–A6). Emit with
+`python v2/scripts/emit_v3_notebooks.py` and smoke-run with
+`python v2/scripts/run_notebook.py`.
+
 ## Contract (every notebook)
 
 1. Header — purpose, inputs, outputs, gate, expected runtime

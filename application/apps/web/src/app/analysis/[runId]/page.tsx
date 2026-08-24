@@ -16,6 +16,7 @@ import { SignaturePanels } from "@/components/SignaturePanels";
 import { TrialExplorer } from "@/components/TrialExplorer";
 import { WarningsPanel } from "@/components/WarningsPanel";
 import { PrototypeWorkspace } from "@/components/PrototypeWorkspace";
+import { V3Workspace } from "@/components/V3Workspace";
 import { cleanClinicalStatus } from "@/lib/format";
 
 export default function ClinicianAnalysisPage() {
@@ -206,7 +207,9 @@ export default function ClinicianAnalysisPage() {
 
           {activeView === "patient_analysis" ? (
             <>
-              {result.prototype ? (
+              {result.v3_cohort && result.v3_patient ? (
+                <V3Workspace cohort={result.v3_cohort} patient={result.v3_patient} />
+              ) : result.prototype ? (
                 <PrototypeWorkspace payload={result.prototype} />
               ) : (
                 <>

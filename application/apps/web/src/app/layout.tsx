@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { ResearchBanner } from "@/components/ResearchBanner";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
-  title: "MOFA-Guided Oncology Research Copilot",
+  title: "Cluster-first breast tumour explorer",
   description:
-    "Research prototype mapping a breast cancer RNA profile to MOFA cluster evidence, drug discovery signals, and literature/trial context.",
+    "Research prototype: structure-first subgroups, measured cell-line response, not a clinical decision-support tool.",
 };
 
 export default function RootLayout({
@@ -26,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 text-slate-900`}>
+      <body className={`${plexSans.variable} ${plexMono.variable} antialiased`} style={{ fontFamily: "var(--font-plex-sans), system-ui, sans-serif" }}>
         <ResearchBanner />
         {children}
       </body>

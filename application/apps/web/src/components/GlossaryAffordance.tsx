@@ -22,10 +22,18 @@ type GlossaryEntry = {
 
 const ENTRIES = (glossaryJson as { entries: GlossaryEntry[] }).entries;
 
-export function GlossaryAffordance({ panel }: { panel: string }) {
+export function GlossaryAffordance({ panel, encoder }: { panel: string; encoder?: string }) {
   const [open, setOpen] = useState(false);
-  const entry = ENTRIES.find((item) => item.panel === panel);
-  if (!entry) return null;
+  const found = ENTRIES.find((item) => item.panel === panel);
+  if (!found) return null;
+  const suppressNll = panel === "position" && encoder === "linear_poe";
+  const entry = suppressNll
+    ? {
+        ...found,
+        method: "Linear product-of-experts fallback — the committed VAE NLL gate does not apply.",
+        validation: { ...found.validation, status: "not_applicable", metric: null, value: null },
+      }
+    : found;
 
   return (
     <>

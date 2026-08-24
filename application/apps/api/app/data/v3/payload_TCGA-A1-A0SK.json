@@ -1,0 +1,92 @@
+{
+  "schema_version": "v3_cluster",
+  "patient_id": "TCGA-A1-A0SK",
+  "role": "abstain",
+  "title": "TCGA-A1-A0SK",
+  "description": "Held-out TCGA prototype patient.",
+  "encoder": "jax_poe_vae",
+  "state": 3,
+  "banner": "Posterior width exceeds the abstention threshold.",
+  "modalities_present": [
+    "rna"
+  ],
+  "pam50": "Basal",
+  "analysis_timestamp": "2026-08-23T15:48:24.729921+00:00",
+  "patient_metadata": {
+    "claudin_subtype": "Basal"
+  },
+  "sample_quality": {
+    "tumour_fraction": 0.72,
+    "composition": [
+      {
+        "cell_type": "malignant",
+        "fraction": 0.72,
+        "ci": [
+          0.68,
+          0.76
+        ]
+      },
+      {
+        "cell_type": "immune",
+        "fraction": 0.16,
+        "ci": [
+          0.12,
+          0.2
+        ]
+      },
+      {
+        "cell_type": "stroma",
+        "fraction": 0.12,
+        "ci": [
+          0.09,
+          0.16
+        ]
+      }
+    ],
+    "verdict": "sufficient",
+    "verdict_reason": "Tumour fraction supports epithelial inference."
+  },
+  "position": {
+    "umap_coords": [
+      3.312495692845986,
+      -0.21418039334968764
+    ],
+    "pca_coords": [
+      3.2125716193323997,
+      -0.2615234727494689
+    ],
+    "posterior_width": 0.45,
+    "cluster": {
+      "label": 1,
+      "posterior_mass": 1.0
+    },
+    "membership": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "abstention": {
+    "abstained": true,
+    "reason_code": "posterior_width",
+    "reason_text": "Posterior width exceeds the abstention threshold.",
+    "what_would_help": [
+      "Adding CNA and methylation assays"
+    ],
+    "sections_rendered": [
+      "sample_quality",
+      "cluster_projection",
+      "cluster_characteristics"
+    ]
+  },
+  "prognostic_estimate": null,
+  "reversal_candidates": null,
+  "nearest_lines": null,
+  "limitations": [
+    "Cluster count is chosen from structure, never from survival.",
+    "Exploratory k views render curves without p-values.",
+    "Dose-response values are measured GDSC viabilities, not a simulation.",
+    "Adjacent-normal references can show field effects."
+  ],
+  "s4_ships": false
+}

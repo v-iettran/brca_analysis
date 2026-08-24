@@ -1,0 +1,157 @@
+export const V3_SCHEMA = "v3_cluster" as const;
+
+export interface V3Preregistered {
+  k: number | null;
+  timestamp: string;
+  selection_rule: string;
+  method: string;
+  covariance_type: string | null;
+  bic?: number | null;
+  silhouette?: number | null;
+  stability?: number | null;
+  clustering_available: boolean;
+  stability_threshold: number;
+}
+
+export interface V3KmCurve {
+  time: number[];
+  survival: number[];
+  lower: number[];
+  upper: number[];
+  at_risk: number[];
+  events?: number[];
+  median?: number | null;
+  n?: number;
+  n_events?: number;
+  cluster?: number;
+}
+
+export interface V3KmBlock {
+  curves: Record<string, V3KmCurve>;
+  p_value?: number | null;
+  statistic?: number | null;
+  n?: number;
+  n_events?: number;
+  exploratory: boolean;
+}
+
+export interface V3Configuration {
+  method: string;
+  covariance_type: string | null;
+  k: number;
+  exploratory: boolean;
+  assignments: Record<string, number>;
+  membership: Record<string, number[]>;
+  km: { os: V3KmBlock; pfi: V3KmBlock };
+}
+
+export interface V3ComparisonMatrix {
+  features: string[];
+  families: string[];
+  clusters: number[];
+  effects: number[][];
+  q: number[][];
+}
+
+export interface V3ClusterAnnotation {
+  cluster: number;
+  n: number;
+  esr1_mean: number;
+  erbb2_mean: number;
+  prolif_mean: number;
+  pam50_majority?: string | null;
+  er_high?: boolean;
+  her2_amplified?: boolean;
+  basal_enriched?: boolean;
+}
+
+export interface V3CohortPayload {
+  schema_version: typeof V3_SCHEMA;
+  encoder: string;
+  clustering_available: boolean;
+  preregistered: V3Preregistered;
+  model_selection: Array<{ k: number; bic: number; silhouette: number; stability: number }>;
+  gates: {
+    a1: { passed: boolean; clustering_available?: boolean; stability?: number };
+    a2: { passed: boolean; p_os?: number | null; p_pfi?: number | null; framing: "prognostic" | "descriptive" };
+    a3?: { passed: boolean; per_cluster_pathway_counts?: Record<string, number> };
+    a4: { passed: boolean; reversal_available?: boolean; caveats?: string[] };
+    a5?: Record<string, unknown>;
+  };
+  projections: { umap: Record<string, number[]>; pca: Record<string, number[]> };
+  posterior_width?: Record<string, number>;
+  configurations: Record<string, V3Configuration>;
+  cluster_profiles: Array<Record<string, unknown>>;
+  comparison_matrix: V3ComparisonMatrix;
+  cluster_annotations: Record<string, V3ClusterAnnotation>;
+  tf_reliability?: Array<{ tf: string; reliability: string; reliability_reason?: string; source?: string }>;
+  survival_sensitivity?: Array<Record<string, unknown>>;
+  pam50?: Record<string, string>;
+  analysis_timestamp?: string;
+}
+
+export interface V3DoseCurve {
+  drug: string;
+  canonical?: string;
+  line_id: string;
+  concentration_nm: number[];
+  viability: number[];
+  lower: number[];
+  upper: number[];
+  ic50_nm: number;
+  cmax_nm?: number | null;
+  source: string;
+  measured: boolean;
+  simulation: boolean;
+}
+
+export interface V3CellLine {
+  line_id: string;
+  name: string;
+  similarity: number;
+  rank: number;
+  pam50?: string | null;
+  tissue?: string;
+  mutations?: string[];
+  fingerprint: number[];
+  curves?: V3DoseCurve[];
+}
+
+export interface V3PatientPayload {
+  schema_version: typeof V3_SCHEMA;
+  patient_id: string;
+  role: string;
+  title?: string | null;
+  description?: string | null;
+  encoder: string;
+  state: number;
+  banner?: string | null;
+  modalities_present: string[];
+  pam50?: string | null;
+  analysis_timestamp?: string;
+  patient_metadata: Record<string, unknown>;
+  sample_quality: import("./types").SampleQuality;
+  position: {
+    umap_coords: number[];
+    pca_coords?: number[];
+    posterior_width: number;
+    cluster: { label: number; posterior_mass: number };
+    membership: number[];
+  };
+  abstention: import("./types").AbstentionState;
+  prognostic_estimate?: import("./types").PrognosticEstimate | null;
+  reversal_candidates?: {
+    members: Array<{ drug: string; canonical?: string; reversal_score?: number; rank?: number; source?: string; validated?: boolean }>;
+    validated: boolean;
+    threshold_rule: string;
+    order_carries_no_meaning: boolean;
+    source: string;
+  } | null;
+  nearest_lines?: V3CellLine[] | null;
+  limitations: string[];
+  s4_ships: boolean;
+}
+
+export function configId(method: string, covariance: string | null, k: number): string {
+  return method === "gmm" ? `gmm:${covariance}:k=${k}` : `kmeans:na:k=${k}`;
+}

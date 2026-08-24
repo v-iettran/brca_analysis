@@ -66,6 +66,8 @@ def _to_result_out(run: AnalysisRun) -> AnalysisResultOut:
         error_message=run.error_message,
         current_stage=run.current_stage,
         prototype=payload.get("prototype"),
+        v3_cohort=payload.get("v3_cohort"),
+        v3_patient=payload.get("v3_patient"),
         schema_version=payload.get("schema_version"),
         s4_ships=bool(payload.get("s4_ships")),
     )

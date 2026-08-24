@@ -21,8 +21,8 @@ export function AbstentionPanel({ data }: { data: AbstentionState }) {
         </ul>
       )}
       <p className="mt-4 text-xs text-rose-800">
-        Sections 4 and 5 are absent — no drug set was produced. Sample quality, position, and molecular state
-        remain so the reason is visible.
+        Drug retrieval and the prognostic interval are withheld — clustering remains visible so the reason is
+        apparent.
       </p>
     </section>
   );

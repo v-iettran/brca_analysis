@@ -1,0 +1,12 @@
+{
+  "k": 8,
+  "timestamp": "2026-08-23T15:46:26.400176+00:00",
+  "selection_rule": "stability_within_10_bic",
+  "method": "gmm",
+  "covariance_type": "full",
+  "bic": -128754.23078806257,
+  "silhouette": 0.21488965000265833,
+  "stability": 0.7523574239076176,
+  "clustering_available": true,
+  "stability_threshold": 0.6
+}

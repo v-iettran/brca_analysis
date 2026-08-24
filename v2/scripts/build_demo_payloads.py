@@ -68,8 +68,7 @@ def _composition(row: pd.Series) -> list[dict]:
 
 
 APP_DATA_DIRS = [
-    Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/person_med_a2/application/apps/api/app/data"),
-    Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/brca_analysis/application/apps/api/app/data"),
+    ROOT.parent / "application" / "apps" / "api" / "app" / "data",
 ]
 
 

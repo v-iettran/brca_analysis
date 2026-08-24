@@ -136,11 +136,8 @@ def main() -> Path:
     out = root / "data" / "reference" / "glossary.json"
     out.write_text(payload)
     copies = [
-        Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/person_med_a2/application/apps/api/app/data/glossary.json"),
-        Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/person_med_a2/application/apps/web/src/data/glossary.json"),
-        Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/brca_analysis/application/apps/api/app/data/glossary.json"),
-        Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/brca_analysis/application/apps/web/src/data/glossary.json"),
-        Path("/Users/luke/Desktop/UCD/Class/Summer/AI-for-PM/brca_analysis/v2/data/reference/glossary.json"),
+        _ROOT.parent / "application" / "apps" / "api" / "app" / "data" / "glossary.json",
+        _ROOT.parent / "application" / "apps" / "web" / "src" / "data" / "glossary.json",
     ]
     for dest in copies:
         dest.parent.mkdir(parents=True, exist_ok=True)

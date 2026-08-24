@@ -155,6 +155,8 @@ class AnalysisResultOut(BaseModel):
     error_message: str | None = None
     current_stage: str | None = None
     prototype: PrototypePayload | None = None
+    v3_cohort: dict[str, Any] | None = None
+    v3_patient: dict[str, Any] | None = None
     schema_version: str | None = None
     s4_ships: bool = False
 

@@ -60,6 +60,6 @@ describe("AbstentionPanel", () => {
         }}
       />
     );
-    expect(screen.getByText(/Sections 4 and 5 are absent/i)).toBeInTheDocument();
+    expect(screen.getByText(/Drug retrieval and the prognostic interval are withheld/i)).toBeInTheDocument();
   });
 });

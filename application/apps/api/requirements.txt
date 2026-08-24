@@ -1,4 +1,4 @@
-# Install pipeline_core first: pip install -e packages/pipeline_core (from person_med_a2/)
+# Install pipeline_core first: pip install -e ../../packages/pipeline_core
 
 fastapi>=0.115
 uvicorn[standard]>=0.32

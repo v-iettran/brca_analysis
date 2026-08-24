@@ -23,7 +23,7 @@ export function SampleQualityPanel({ data }: { data: SampleQuality }) {
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">1 · Sample quality</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Sample quality</p>
           <h2 className="mt-1 text-lg font-semibold text-slate-950">Tumour composition</h2>
         </div>
         <GlossaryAffordance panel="sample_quality" />

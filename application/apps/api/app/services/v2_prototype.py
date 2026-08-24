@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from app.services.v3_prototype import load_v3_bundle
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
@@ -73,9 +75,13 @@ def cluster_prediction_from_prototype(payload: dict) -> dict:
 
 def result_fields_from_prototype(payload: dict) -> dict:
     abstained = bool((payload.get("abstention") or {}).get("abstained"))
+    v3_cohort, v3_patient = load_v3_bundle(str(payload.get("patient_id") or ""))
+    schema = "v3_cluster" if v3_patient else "v2_prototype"
     return {
-        "schema_version": "v2_prototype",
+        "schema_version": schema,
         "prototype": payload,
+        "v3_cohort": v3_cohort,
+        "v3_patient": v3_patient,
         "cluster_prediction": cluster_prediction_from_prototype(payload),
         "analysis_summary": {
             "top_cluster": (payload.get("position") or {}).get("cluster", {}).get("label"),
@@ -84,9 +90,9 @@ def result_fields_from_prototype(payload: dict) -> dict:
             "headline_nominations": [],
             "dominant_uncertainty": (payload.get("abstention") or {}).get("reason_text")
             or payload.get("banner")
-            or "Pathway-matched candidates are a mechanistic filter, not a ranked drug list.",
+            or "Subgroups are chosen from molecular structure. Survival is tested separately.",
         },
-        "limitations": payload.get("limitations") or [],
+        "limitations": payload.get("limitations") or (v3_patient or {}).get("limitations") or [],
         "top_candidate_drugs": [],
         "overlap_nominations": [],
         "almanac_combinations": [],
