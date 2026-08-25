@@ -160,11 +160,21 @@ def annotate_clusters(expr: pd.DataFrame, labels: np.ndarray, pam50: pd.Series |
                 row["pam50_majority"] = str(sub.value_counts().idxmax())
         out[str(int(lab))] = row
     if out:
-        er_cluster = max(out.values(), key=lambda r: r["esr1_mean"])["cluster"]
-        her2_cluster = max(out.values(), key=lambda r: r["erbb2_mean"])["cluster"]
-        basal_cluster = max(out.values(), key=lambda r: r["prolif_mean"])["cluster"]
-        for row in out.values():
-            row["er_high"] = row["cluster"] == er_cluster
-            row["her2_amplified"] = row["cluster"] == her2_cluster
-            row["basal_enriched"] = row["cluster"] == basal_cluster
+        _flag_leader(out, "esr1_mean", "er_high")
+        _flag_leader(out, "erbb2_mean", "her2_amplified")
+        _flag_leader(out, "prolif_mean", "basal_enriched")
     return out
+
+
+def _flag_leader(rows: dict, metric: str, flag: str, margin: float = 0.25) -> None:
+    """Flag the leading cluster only when it clears the runner-up by `margin`.
+
+    A plain argmax always names a winner, so with a flat or all-zero metric one
+    cluster would be labelled ER-high, HER2-amplified, and basal at once.
+    """
+    values = sorted((row[metric] for row in rows.values()), reverse=True)
+    leader = max(rows.values(), key=lambda r: r[metric])
+    runner_up = values[1] if len(values) > 1 else float("-inf")
+    decisive = len(values) > 1 and (leader[metric] - runner_up) >= margin
+    for row in rows.values():
+        row[flag] = bool(decisive and row["cluster"] == leader["cluster"])

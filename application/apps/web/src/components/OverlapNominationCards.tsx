@@ -274,7 +274,7 @@ export function OverlapNominationCards({
               <p className="mt-1 max-w-3xl text-[11px] leading-4 text-slate-500">
                 PARP inhibitors, chemotherapy, endocrine agents, and targeted small molecules are shown here even when
                 they rank below the nomination cutoff. Available ranks come from the compact patient analysis or the
-                expression-derived MOFA cluster reference; unavailable residual ranks stay explicitly marked n/a.
+                expression-derived cluster reference; unavailable residual ranks stay explicitly marked n/a.
                 Compounds are not manually promoted into recommendations. Concordance labels compare top-quartile
                 dual-expression support with top-quartile predictor rank; the scores are never averaged.
               </p>

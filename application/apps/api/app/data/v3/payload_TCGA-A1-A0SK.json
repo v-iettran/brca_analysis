@@ -3,17 +3,29 @@
   "patient_id": "TCGA-A1-A0SK",
   "role": "abstain",
   "title": "TCGA-A1-A0SK",
-  "description": "Held-out TCGA prototype patient.",
-  "encoder": "jax_poe_vae",
+  "description": "Held-out TCGA-BRCA patient.",
+  "encoder": "pca_intrinsic_expression",
   "state": 3,
   "banner": "Posterior width exceeds the abstention threshold.",
   "modalities_present": [
     "rna"
   ],
+  "modalities_used": [
+    "rna"
+  ],
   "pam50": "Basal",
-  "analysis_timestamp": "2026-08-23T15:48:24.729921+00:00",
+  "analysis_timestamp": "2026-08-25T10:10:20.717918+00:00",
   "patient_metadata": {
-    "claudin_subtype": "Basal"
+    "age": "54",
+    "sex": "Female",
+    "stage": "STAGE IIA",
+    "subtype": "BRCA_Basal",
+    "histology": "8013/3",
+    "path_t": "T2",
+    "path_n": "N0 (I-)",
+    "path_m": "M0",
+    "radiation": null,
+    "prior_dx": "No"
   },
   "sample_quality": {
     "tumour_fraction": 0.72,
@@ -22,7 +34,7 @@
         "cell_type": "malignant",
         "fraction": 0.72,
         "ci": [
-          0.68,
+          0.6799999999999999,
           0.76
         ]
       },
@@ -47,21 +59,22 @@
     "verdict_reason": "Tumour fraction supports epithelial inference."
   },
   "position": {
-    "umap_coords": [
-      3.312495692845986,
-      -0.21418039334968764
-    ],
     "pca_coords": [
-      3.2125716193323997,
-      -0.2615234727494689
+      16.012575501520953,
+      16.270972595130615
     ],
-    "posterior_width": 0.45,
+    "umap_coords": [
+      5.521053791046143,
+      -3.390859842300415
+    ],
+    "posterior_width": 0.0,
     "cluster": {
-      "label": 1,
+      "label": 2,
       "posterior_mass": 1.0
     },
     "membership": [
-      0.0,
+      9.240786429901506e-20,
+      1.1168055912873734e-62,
       1.0,
       0.0
     ]
@@ -86,7 +99,16 @@
     "Cluster count is chosen from structure, never from survival.",
     "Exploratory k views render curves without p-values.",
     "Dose-response values are measured GDSC viabilities, not a simulation.",
-    "Adjacent-normal references can show field effects."
+    "Adjacent-normal references can show field effects.",
+    "The latent space is a PCA of the intrinsic gene set, not the committed VAE encoding."
   ],
-  "s4_ships": false
+  "s4_ships": false,
+  "takeaways": {
+    "structure": "The data supports 4 subgroups (n = 1082, TCGA-BRCA).",
+    "survival": "The 4 subgroups differ in overall survival (p = 0.038).",
+    "quality": "72% tumour content \u2014 sufficient for analysis.",
+    "projection": "This patient falls in Subgroup 3 (100% membership).",
+    "characteristics": "Subgroup 3 is defined by reduced Estrogen signalling.",
+    "retrieval": "Drug retrieval is withheld because this encoding abstains."
+  }
 }

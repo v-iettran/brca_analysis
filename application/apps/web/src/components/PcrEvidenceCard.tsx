@@ -86,7 +86,7 @@ export function PcrEvidenceCard({ pcr, regimen }: { pcr: SupportedPcrResult; reg
                 <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-violet-600">
                   Separate discovery signal
                 </p>
-                <p className="mt-1 text-sm font-semibold text-slate-800">MOFA regimen reversal</p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">Transcriptional regimen reversal</p>
               </div>
               <span className="text-xl font-semibold text-violet-700">
                 {pcr.mofa_regimen_reversal_percentile != null
@@ -96,7 +96,7 @@ export function PcrEvidenceCard({ pcr, regimen }: { pcr: SupportedPcrResult; reg
             </div>
             <p className="mt-2 text-xs leading-5 text-slate-500">
               GCTX transcriptional-reversal percentile. It is intentionally not fused into the Q5
-              pCR estimate because the combined Q2+MOFA model is not externally validated.
+              pCR estimate because the combined Q2 + reversal model is not externally validated.
             </p>
           </div>
         </div>

@@ -183,9 +183,9 @@ describe("RationaleCard", () => {
           summary: "This is a research demonstration, not a treatment recommendation.",
           supporting_claims: [
             {
-              text: "Cluster 2 has the largest RNA-only probability.",
+              text: "Using rna + cna, this tumour has the largest membership in subgroup 2.",
               kind: "support",
-              evidence_keys: ["cluster_prediction.top_cluster"],
+              evidence_keys: ["v3_patient.position.cluster"],
               citation_ids: ["12345"],
               section: "mofa",
             },
@@ -209,7 +209,7 @@ describe("RationaleCard", () => {
       />
     );
     expect(screen.getByText(/Evidence rationale/i)).toBeInTheDocument();
-    expect(screen.getByText("cluster_prediction.top_cluster")).toBeInTheDocument();
+    expect(screen.getByText("v3_patient.position.cluster")).toBeInTheDocument();
     expect(screen.getByText("12345")).toBeInTheDocument();
     expect(screen.getByText(/Deterministic evidence summary/i)).toBeInTheDocument();
   });

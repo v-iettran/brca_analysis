@@ -89,11 +89,11 @@ export function ClusterExplorer({
         <div>
           <div className="flex items-center gap-2">
             <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-700">
-              RNA-only surrogate
+              RNA assignment
             </span>
             <span className="text-xs text-slate-400">{prediction.method_used.replace("_", " ")}</span>
           </div>
-          <h2 className="mt-3 text-xl font-semibold tracking-tight text-slate-950">MOFA cluster profile</h2>
+          <h2 className="mt-3 text-xl font-semibold tracking-tight text-slate-950">Cluster profile</h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
             Select a cluster to see its probability and the genes expressed higher or lower than the
             other METABRIC clusters after PAM50 adjustment.

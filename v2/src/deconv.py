@@ -6,6 +6,7 @@ BayesPrism. Phases 2–4 use TCGA only; METABRIC stays the v1 comparison baselin
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -153,18 +154,54 @@ def run_bayesprism_chunks(
     ref_p: Path,
     ct_p: Path,
     outdir: Path,
-    chunk: int = 40,
+    chunk: int = 150,
     cores: int = 2,
-    timeout: int = 1200,
+    timeout: int = 21600,
+    allow_nnls_fallback: bool = False,
 ) -> tuple[pd.DataFrame | None, pd.DataFrame | None, str]:
-    """Chunked BayesPrism. Returns (theta, Z_malignant, note)."""
-    from io_data import nnls_deconvolution
+    """Chunked BayesPrism. Returns (theta, Z_malignant, note).
+
+    Full-scale runs must not silently fall back to NNLS or a sample cap.
+    """
+    import gc
 
     thetas, zs = [], []
     r_ok = False
-    for start in range(0, len(bulk), chunk):
+    chunk_dir = Path(outdir) / "chunks"
+    chunk_dir.mkdir(parents=True, exist_ok=True)
+    n_total = len(bulk)
+    n_chunks = (n_total + chunk - 1) // chunk
+    for i, start in enumerate(range(0, n_total, chunk)):
         piece = bulk.iloc[start:start + chunk]
-        mix_p = outdir / "mixture.parquet"
+        idx = i + 1
+        done_t = chunk_dir / f"theta_{idx:03d}.parquet"
+        done_z = chunk_dir / f"Z_{idx:03d}.parquet"
+        print(
+            f"BayesPrism chunk {idx}/{n_chunks} rows {start}:{start + len(piece)} "
+            f"n={len(piece)} of {n_total}",
+            flush=True,
+        )
+        prog = Path(outdir) / "progress.jsonl"
+        with prog.open("a") as _f:
+            _f.write(
+                json.dumps({
+                    "status": "chunk_start",
+                    "chunk": idx,
+                    "n_chunks": n_chunks,
+                    "n_piece": int(len(piece)),
+                    "n_total": int(n_total),
+                })
+                + "\n"
+            )
+        if done_t.exists() and done_z.exists():
+            t = pd.read_parquet(done_t)
+            z = pd.read_parquet(done_z)
+            thetas.append(t)
+            zs.append(z)
+            r_ok = True
+            print(f"  reused chunk {idx} n={len(t)}", flush=True)
+            continue
+        mix_p = Path(outdir) / "mixture.parquet"
         piece.to_parquet(mix_p)
         cmd = [
             "Rscript", str(r_script),
@@ -174,30 +211,50 @@ def run_bayesprism_chunks(
             "--outdir", str(outdir),
             "--cores", str(cores),
         ]
-        print("BayesPrism chunk", start, "n=", len(piece), flush=True)
         try:
             rc = subprocess.run(cmd, check=False, timeout=timeout, capture_output=True, text=True)
             if rc.returncode != 0:
-                print("R stderr:", (rc.stderr or "")[-2000:])
+                print("R stderr:", (rc.stderr or "")[-2000:], flush=True)
         except subprocess.TimeoutExpired:
-            print("BayesPrism timed out; NNLS fallback")
+            print(f"BayesPrism timed out after {timeout}s on chunk {idx}", flush=True)
             rc = type("R", (), {"returncode": 1})()
-        if rc.returncode == 0 and (outdir / "theta.parquet").exists():
-            t = pd.read_parquet(outdir / "theta.parquet")
+        if rc.returncode == 0 and (Path(outdir) / "theta.parquet").exists():
+            t = pd.read_parquet(Path(outdir) / "theta.parquet")
             t.index = piece.index[: len(t)]
+            t.to_parquet(done_t)
             thetas.append(t)
-            if (outdir / "Z_malignant.parquet").exists():
-                z = pd.read_parquet(outdir / "Z_malignant.parquet")
+            if (Path(outdir) / "Z_malignant.parquet").exists():
+                z = pd.read_parquet(Path(outdir) / "Z_malignant.parquet")
                 z.index = piece.index[: len(z)]
+                z.to_parquet(done_z)
                 zs.append(z)
             r_ok = True
+            print(f"  wrote chunk {idx} n={len(t)}", flush=True)
+            with prog.open("a") as _f:
+                _f.write(json.dumps({"status": "chunk_done", "chunk": idx, "n": int(len(t))}) + "\n")
         else:
-            print("R BayesPrism failed for chunk; will use NNLS fallback")
+            print(f"R BayesPrism failed for chunk {idx}/{n_chunks}", flush=True)
             break
+        if mix_p.exists():
+            mix_p.unlink()
+        gc.collect()
     if r_ok and thetas:
         theta = pd.concat(thetas)
         Z_mal = pd.concat(zs) if zs else bulk.loc[theta.index]
+        if len(theta) < n_total:
+            return (
+                theta,
+                Z_mal,
+                f"BayesPrism PARTIAL n_bulk={len(theta)}/{n_total} — stopped before full n",
+            )
         return theta, Z_mal, f"BayesPrism n_bulk={len(theta)}"
+    if not allow_nnls_fallback:
+        raise RuntimeError(
+            f"BayesPrism failed before finishing n={n_total}. "
+            "Not falling back to NNLS or a sample cap."
+        )
+    from io_data import nnls_deconvolution
+
     cts = pd.read_parquet(ct_p)
     ref = pd.read_parquet(ref_p)
     theta = nnls_deconvolution(bulk, ref, cts)

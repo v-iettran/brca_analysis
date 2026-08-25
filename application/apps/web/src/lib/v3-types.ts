@@ -88,6 +88,17 @@ export interface V3CohortPayload {
   survival_sensitivity?: Array<Record<string, unknown>>;
   pam50?: Record<string, string>;
   analysis_timestamp?: string;
+  takeaways?: Record<string, string>;
+  n_samples?: number;
+  cohort_source?: string;
+  synthetic_samples?: number;
+  projection_meta?: {
+    default?: "pca" | "umap";
+    pca_variance_ratio?: number[];
+    umap_available?: boolean;
+    umap_note?: string;
+  };
+  provenance?: Record<string, unknown>;
 }
 
 export interface V3DoseCurve {
@@ -150,6 +161,8 @@ export interface V3PatientPayload {
   nearest_lines?: V3CellLine[] | null;
   limitations: string[];
   s4_ships: boolean;
+  takeaways?: Record<string, string>;
+  modalities_used?: string[];
 }
 
 export function configId(method: string, covariance: string | null, k: number): string {

@@ -32,6 +32,7 @@ from v3_payload import (
     validate_patient,
 )
 from v3_smoke import assemble_v3, persist_smoke
+from gate import gate, SYNTHETIC_PREFIXES
 
 
 def test_k_selection_rejects_survival_columns():
@@ -184,7 +185,29 @@ def test_payload_split_encoder_and_state3(tmp_path, monkeypatch):
         assert_safe("predicted survival is 12 months")
 
 
-def test_a1_failure_does_not_force_k():
+def test_synthetic_cohort_cannot_pass_a_gate(tmp_path):
+    ids = [f"TCGA-SM-{i:04d}" for i in range(10)] + ["TCGA-A8-A081"]
+    passed = gate(
+        "NB_A1",
+        "cluster_stability_ari",
+        0.99,
+        0.60,
+        sample_ids=ids,
+        v2_root=tmp_path,
+        smoke_test=True,
+    )
+    assert passed is False
+    rec = json.loads((tmp_path / "reports" / "gates.jsonl").read_text().splitlines()[-1])
+    assert rec["status"] == "synthetic"
+    assert rec["n_synthetic"] == 10
+    assert any(ids[0].startswith(p) for p in SYNTHETIC_PREFIXES)
+
+
+def test_cohort_gate_requires_sample_ids(tmp_path):
+    passed = gate("NB_A1", "cluster_stability_ari", 0.9, 0.6, cohort=True, v2_root=tmp_path)
+    assert passed is False
+    rec = json.loads((tmp_path / "reports" / "gates.jsonl").read_text().splitlines()[-1])
+    assert "missing sample_ids" in rec["note"]
     rec = freeze_preregistered_k(3, {"bic": 1, "silhouette": 0.1, "stability": 0.2}, clustering_available=False)
     assert rec["k"] is None
     assert rec["clustering_available"] is False

@@ -245,7 +245,7 @@ def export_pdf(run: AnalysisRun) -> Path:
     doc = SimpleDocTemplate(str(path), pagesize=LETTER)
     elements = [
         Paragraph(BANNER_TEXT, banner_style),
-        Paragraph("MOFA Copilot V2 — Overlap Nomination Report", styles["Title"]),
+        Paragraph("Cluster-first research evidence report", styles["Title"]),
         Paragraph(f"Run ID: {run.run_id}", styles["Normal"]),
         Paragraph(f"Revision: {int(run.revision or 0)}", styles["Normal"]),
         Paragraph(f"Generated: {dt.datetime.now(dt.timezone.utc).isoformat()}", styles["Normal"]),
@@ -274,9 +274,24 @@ def export_pdf(run: AnalysisRun) -> Path:
     )
     elements.append(Spacer(1, 0.15 * inch))
 
+    v3_patient = result.get("v3_patient") or {}
     cluster = result.get("cluster_prediction") or {}
-    if cluster:
-        elements.append(Paragraph("MOFA cluster probabilities (RNA-only surrogate)", styles["Heading2"]))
+    if v3_patient:
+        pos = (v3_patient.get("position") or {}).get("cluster") or {}
+        modalities = v3_patient.get("modalities_used") or v3_patient.get("modalities_present") or []
+        elements.append(Paragraph("Structure-selected subgroup", styles["Heading2"]))
+        elements.append(
+            Paragraph(
+                f"Encoded from {' + '.join(modalities) or 'available assays'}. "
+                f"Subgroup {int(pos.get('label') or 0) + 1} "
+                f"membership {float(pos.get('posterior_mass') or 0):.0%}. "
+                "Compounds are shown as evidence, not as recommendations.",
+                styles["Normal"],
+            )
+        )
+        elements.append(Spacer(1, 0.2 * inch))
+    elif cluster:
+        elements.append(Paragraph("Cluster probabilities (RNA assignment)", styles["Heading2"]))
         rows = [["Cluster", "Probability"]] + [
             [str(k), f"{v:.1%}"] for k, v in sorted(cluster.get("probabilities", {}).items())
         ]

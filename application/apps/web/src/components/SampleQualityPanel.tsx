@@ -10,7 +10,7 @@ const COLORS: Record<string, string> = {
   stroma: "bg-slate-400",
 };
 
-export function SampleQualityPanel({ data }: { data: SampleQuality }) {
+export function SampleQualityPanel({ data, takeaway }: { data: SampleQuality; takeaway?: string }) {
   const [open, setOpen] = useState(false);
   const verdictColor =
     data.verdict === "sufficient"
@@ -25,6 +25,7 @@ export function SampleQualityPanel({ data }: { data: SampleQuality }) {
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Sample quality</p>
           <h2 className="mt-1 text-lg font-semibold text-slate-950">Tumour composition</h2>
+          {takeaway && <p className="takeaway mt-1">{takeaway}</p>}
         </div>
         <GlossaryAffordance panel="sample_quality" />
       </header>

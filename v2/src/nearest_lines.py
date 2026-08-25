@@ -55,12 +55,18 @@ def nearest_lines(
 
 
 def _fingerprint(a: np.ndarray, b: np.ndarray, n_axes: int = 5) -> list[float]:
+    """Per-axis agreement, scaled by the strongest axis rather than the sum.
+
+    Normalising by the sum makes one dominant axis absorb ~all the mass and the
+    rest render as empty bars, which reads as a degenerate metric rather than a
+    real difference between lines.
+    """
     n = min(len(a), len(b), n_axes)
     if n == 0:
         return [0.0] * n_axes
-    contrib = a[:n] * b[:n]
-    mag = np.abs(contrib).sum() or 1.0
-    vals = (np.abs(contrib) / mag).tolist()
+    contrib = np.asarray(a[:n], dtype=float) * np.asarray(b[:n], dtype=float)
+    peak = float(np.max(np.abs(contrib))) or 1.0
+    vals = np.clip(contrib / peak, -1.0, 1.0).tolist()
     return vals + [0.0] * (n_axes - len(vals))
 
 
@@ -123,10 +129,11 @@ def attach_gdsc_curves(
             pk_map[normalize_drug_name(row[name_col])] = row.get("cmax_nm")
     out = []
     for line in lines:
-        key = str(line.get("name") or line["line_id"]).upper()
+        key = "".join(ch for ch in str(line.get("name") or line["line_id"]).upper() if ch.isalnum())
         curves = []
         if line_col in gdsc.columns:
-            sub = gdsc[gdsc[line_col].astype(str).str.upper() == key]
+            keys = gdsc[line_col].astype(str).str.upper().str.replace(r"[^A-Z0-9]", "", regex=True)
+            sub = gdsc[keys == key]
         else:
             sub = gdsc.iloc[0:0]
         for drug in drugs:

@@ -418,7 +418,7 @@ def _build_v2_payload(
         "limitations": [
             "Cluster signatures are one-vs-rest among METABRIC tumours; there is no normal-breast reference.",
             "Reversing a cluster signature moves away from that cluster state, not necessarily toward a favorable or normal state.",
-            "RNA UMAP/PCA is a surrogate projection colored by MOFA labels, not the original multi-omics MOFA space.",
+            "The projection is a PCA of intrinsic expression, not a multi-omics factor space.",
             "Q2 scores annotate sensitivity only and do not prescribe dosage.",
             "Predictor scores are a parallel standard-treatment context and do not alter List 1/List 2 nomination ranks.",
             "ALMANAC combinations are preclinical cell-line-aligned priorities, not clinical recommendations.",

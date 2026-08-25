@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 const internalApi = process.env.INTERNAL_API_URL;
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   turbopack: {
     root: path.join(__dirname),
   },

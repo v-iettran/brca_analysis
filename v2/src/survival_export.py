@@ -101,10 +101,11 @@ def multivariate_logrank(times, groups, events) -> dict:
         d_i = np.array([np.sum(died == lab) for lab in labels], dtype=float)
         o += d_i
         e += n_i * d_tot / n_tot
-        frac = n_i / n_tot
-        # Greenwood-style covariance for log-rank
-        scale = d_tot * (n_tot - d_tot) / (n_tot * n_tot * max(n_tot - 1, 1))
-        v += scale * (np.diag(n_i) - np.outer(n_i, n_i) / n_tot)
+        if n_tot < 2:
+            continue
+        # Hypergeometric covariance: d(n-d)/(n-1) * [diag(n_i)/n - n_i n_j / n^2]
+        scale = d_tot * (n_tot - d_tot) / (n_tot - 1)
+        v += scale * (np.diag(n_i) / n_tot - np.outer(n_i, n_i) / (n_tot * n_tot))
     stat_vec = o - e
     # drop last group for invertibility
     if k > 1:

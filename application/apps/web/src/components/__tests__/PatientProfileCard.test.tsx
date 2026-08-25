@@ -50,5 +50,6 @@ describe("PatientProfileCard", () => {
     );
     expect(screen.getByText("Positive")).toBeInTheDocument();
     expect(screen.queryByText("Positve")).not.toBeInTheDocument();
+    expect(screen.getByText(/fields not recorded/i)).toBeInTheDocument();
   });
 });

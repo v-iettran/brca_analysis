@@ -65,6 +65,12 @@ for cand in [cwd, *cwd.parents]:
 from paths import ensure_src_on_path, resolve_v2_root
 from gate import gate as _gate_impl
 from safety import assert_safe
+try:
+    import certifi, os
+    os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+    os.environ.setdefault("REQUESTS_CA_BUNDLE", certifi.where())
+except Exception:
+    pass
 
 V2_ROOT = resolve_v2_root()
 ensure_src_on_path(V2_ROOT)
@@ -79,14 +85,16 @@ for d in (RAW, INTERIM, REF, ARTIFACTS, FIGURES, INTERIM / "causal_networks"):
 
 # Laptop vs VPS. Smoke passes are provisional until a full run converts them.
 # NB01 and NB04 stay full: harmonisation and the VAE are cheap.
-SMOKE_TEST = True
-N_SAMPLES  = 200    if SMOKE_TEST else None   # NB02 bulk (BayesPrism; memory)
-N_SC_CELLS = 25_000 if SMOKE_TEST else None   # NB02 Wu reference (BayesPrism; memory)
-N_PATIENTS = 50     if SMOKE_TEST else None   # NB07 CARNIVAL (throughput, not RAM)
-N_DRUGS    = 10     if SMOKE_TEST else None   # NB10 ODE (FLOPs, not RAM)
+SMOKE_TEST = False
+N_SAMPLES  = None   # full TCGA-BRCA; do not cap
+N_SC_CELLS = 25_000  # Wu reference subsample if RAM is tight
+N_PATIENTS = None
+N_DRUGS    = None
 
 def gate(*args, **kwargs):
     kwargs.setdefault("smoke_test", SMOKE_TEST)
+    if "sample_ids" not in kwargs:
+        kwargs.setdefault("cohort", False)
     return _gate_impl(*args, **kwargs)
 
 print("V2_ROOT =", V2_ROOT, "SMOKE_TEST =", SMOKE_TEST)
@@ -518,7 +526,7 @@ PURITY_MIN = 0.65  # revised from 0.70; CPE near its own ceiling (see gate note)
 R_SCRIPT = V2_ROOT / "notebooks" / "r" / "run_bayesprism.R"
 OUT_BP = INTERIM / "bayesprism_raw"
 OUT_BP.mkdir(exist_ok=True)
-CHUNK = 40
+CHUNK = 150
 import numpy as np, pandas as pd
 from scipy.stats import spearmanr
 from io_data import pick_data_file, limit_rows, build_wu_reference
@@ -541,7 +549,7 @@ if "TCGA" in cohorts:
 print("SMOKE N_SAMPLES", N_SAMPLES, "N_SC_CELLS", N_SC_CELLS)
         """),
         code("""
-# Compute — TCGA only. Reuse a cached TCGA posterior rather than re-running BayesPrism.
+# Compute — TCGA only, full n. Do not reuse a smoke-capped cache.
 theta = None
 Z_mal = None
 cohort_tag = None
@@ -551,32 +559,21 @@ prev = INTERIM / "deconvolution_posterior.parquet"
 z_counts_p = INTERIM / "intrinsic_expression_counts.parquet"
 reused = False
 cellularity_ctrl = None
-if prev.exists():
-    old_th = pd.read_parquet(prev)
-    mal_c = [c for c in old_th.columns if str(c).lower().startswith("malig")]
-    clin_p = next((RAW / "metabric").rglob("*clinical_patient.txt"), None)
-    if mal_c and clin_p is not None:
-        clin = pd.read_csv(clin_p, sep="\\t", comment="#")
-        if "CELLULARITY" in clin.columns:
-            map_ = {"Low": 0.3, "Moderate": 0.6, "High": 0.85}
-            cell = clin.set_index("PATIENT_ID")["CELLULARITY"].map(map_)
-            cell.index = cell.index.astype(str)
-            cellularity_ctrl = purity_spearman_with_null(old_th[mal_c[0]].astype(float), cell, n_perm=1000, seed=0)
-            print("CELLULARITY permutation (pre-filter join)", cellularity_ctrl)
-if tcga is not None and prev.exists() and z_counts_p.exists():
+n_full = 0 if tcga is None else len(tcga)
+if tcga is not None and N_SAMPLES is None and prev.exists() and z_counts_p.exists():
     old_th = pd.read_parquet(prev)
     old_z = pd.read_parquet(z_counts_p)
-    if "cohort" in old_th.columns:
-        keep = old_th.index[old_th["cohort"].astype(str).eq("TCGA")]
-        keep = [i for i in keep if i in old_z.index]
-        if len(keep) >= 20:
-            theta = old_th.loc[keep]
-            Z_counts = old_z.loc[keep]
-            cohort_tag = pd.Series("TCGA", index=Z_counts.index)
-            Z_mal = harmonise_malignant(Z_counts, cohort_tag)
-            bp_note = f"TCGA:reused_BayesPrism_cache n_bulk={len(theta)} n_cells=cached source=tcga_counts_only"
-            reused = True
-            print("reused TCGA BayesPrism cache", theta.shape, Z_mal.shape)
+    keep = [i for i in old_th.index if i in old_z.index]
+    if len(keep) >= n_full and n_full >= 20:
+        theta = old_th.loc[keep]
+        Z_counts = old_z.loc[keep]
+        cohort_tag = pd.Series("TCGA", index=Z_counts.index)
+        Z_mal = harmonise_malignant(Z_counts, cohort_tag)
+        bp_note = f"TCGA:reused_full_BayesPrism_cache n_bulk={len(theta)} n_cells=cached source=tcga_counts_only"
+        reused = True
+        print("reused full-n TCGA BayesPrism cache", theta.shape, Z_mal.shape)
+    else:
+        print(f"refusing smoke cache n={len(keep)} < full TCGA n={n_full}; will deconvolve all samples")
 
 if (not reused) and tcga is not None and have_ref:
     limited = limit_rows(tcga, N_SAMPLES, seed=0)
@@ -594,18 +591,18 @@ if (not reused) and tcga is not None and have_ref:
     common = [g for g in limited.columns if g in ref.columns]
     mix = limited.loc[:, common]
     print("deconvolving TCGA", mix.shape, mix.attrs.get("count_source"))
-    theta, Z_counts, note = run_bayesprism_chunks(mix, R_SCRIPT, ref_p, ct_p, OUT_BP, chunk=CHUNK)
+    theta, Z_counts, note = run_bayesprism_chunks(
+        mix, R_SCRIPT, ref_p, ct_p, OUT_BP, chunk=CHUNK, allow_nnls_fallback=False
+    )
     theta["cohort"] = "TCGA"
     cohort_tag = pd.Series("TCGA", index=Z_counts.index)
     Z_mal = harmonise_malignant(Z_counts, cohort_tag)
     bp_note = f"TCGA:{note} n_cells={len(ref)} source=tcga_counts_only"
 elif not reused and tcga is not None:
-    bulk = limit_rows(tcga, N_SAMPLES, seed=0)
-    theta = pd.DataFrame({"malignant": 1.0, "cohort": "TCGA"}, index=bulk.index)
-    Z_mal = bulk
-    Z_counts = bulk
-    bp_note = "Wu scRNA missing; TCGA bulk as intrinsic. Gate should FAIL."
-    print("WARNING:", bp_note)
+    raise RuntimeError(
+        "Wu scRNA missing — cannot deconvolve the full TCGA cohort. "
+        "Not substituting bulk as intrinsic and not capping n."
+    )
 
 if theta is not None:
     theta.to_parquet(INTERIM / "deconvolution_posterior.parquet")
@@ -656,7 +653,8 @@ if theta is not None:
 
 note = (note + " | threshold revised 0.70→0.65: Aran CPE is a consensus purity near its own ceiling")
 gate("NB02", "purity_concordance", float(0.0 if np.isnan(rho) else rho), PURITY_MIN,
-     n=n_rho, min_n=20, insufficient_data=thin, smoke_test=False, note=note)
+     n=n_rho, min_n=20, insufficient_data=thin, smoke_test=False,
+     sample_ids=list(mal.index) if theta is not None else None, note=note)
 print("global rho", rho, note)
         """),
         code("""
@@ -1287,7 +1285,8 @@ print("AUROC", auroc, note)
 # GATE
 note = (note + " | threshold revised 0.80→0.70: TCGA intrinsic and METABRIC bulk control are consistent")
 gate("NB06", "estrogen_er_positive_control", float(auroc), AUROC_MIN,
-     n=n_er, min_n=20, insufficient_data=thin, smoke_test=False, note=note)
+     n=n_er, min_n=20, insufficient_data=thin, smoke_test=False,
+     sample_ids=list(mat.index) if expr is not None else None, note=note)
         """),
         code("""
 # Figures

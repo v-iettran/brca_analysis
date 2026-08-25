@@ -61,8 +61,8 @@ export function CopilotPanel({
             selectedDrug ? `Why was ${selectedDrug} nominated?` : "How should I read overlap nominations?",
             "Explain the residual signature",
             selectedCluster != null
-              ? `Explain cluster ${selectedCluster}`
-              : "Explain the RNA projection and MOFA cluster",
+              ? `Explain subgroup ${selectedCluster}`
+              : "Explain this tumour's subgroup",
           ],
     [activeView, selectedCluster, selectedDrug]
   );
@@ -135,7 +135,7 @@ export function CopilotPanel({
           <div className="mt-4 flex flex-wrap gap-2">
             {selectedCluster != null && (
               <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px]">
-                Context: Cluster {selectedCluster}
+                Context: Subgroup {selectedCluster}
               </span>
             )}
             {selectedDrug && (

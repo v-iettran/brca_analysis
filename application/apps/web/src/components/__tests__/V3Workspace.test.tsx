@@ -53,6 +53,7 @@ const cohort: V3CohortPayload = {
     umap: { "TCGA-A8-A081": [0.1, 0.2], "TCGA-XX-0001": [1, 1] },
     pca: { "TCGA-A8-A081": [0.1, 0.2], "TCGA-XX-0001": [1, 1] },
   },
+  projection_meta: { default: "pca", pca_variance_ratio: [0.34, 0.19], umap_note: "UMAP distances between clusters are not meaningful." },
   posterior_width: { "TCGA-A8-A081": 0.4, "TCGA-XX-0001": 0.5 },
   configurations: {
     "gmm:full:k=3": config(3, false, 0.14),
@@ -145,7 +146,10 @@ const basePatient: V3PatientPayload = {
 describe("V3Workspace", () => {
   it("couples exploratory badges and hides p-values off the pre-registered k", () => {
     render(<V3Workspace cohort={cohort} patient={basePatient} />);
-    expect(screen.getByText(/did not separate survival/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/did not separate survival/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Months since diagnosis/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Overall survival probability")).toBeInTheDocument();
+    expect(screen.getByLabelText("PCA")).toBeChecked();
     expect(screen.queryByTestId("exploratory-badge")).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Number of subgroups"), { target: { value: "4" } });
     expect(screen.getAllByText("exploratory").length).toBeGreaterThanOrEqual(2);
@@ -187,8 +191,8 @@ describe("V3Workspace", () => {
   it("labels dose-response as measurement and tracks the slider", () => {
     render(<V3Workspace cohort={cohort} patient={basePatient} />);
     expect(screen.getByText(/Not a simulation/i)).toBeInTheDocument();
-    expect(screen.getByTestId("dose-readout").textContent).toMatch(/measured in MCF7/);
-    fireEvent.change(screen.getByLabelText("Concentration"), { target: { value: "1000" } });
+    expect(screen.getByTestId("dose-readout").textContent).toMatch(/MCF7/);
+    fireEvent.change(screen.getByLabelText("Concentration (nM)"), { target: { value: "1000" } });
     expect(screen.getByTestId("dose-readout").textContent).toMatch(/1000 nM/);
   });
 });

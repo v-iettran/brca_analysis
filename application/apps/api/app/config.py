@@ -17,7 +17,7 @@ from pipeline_core.config import DB_PATH
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    app_name: str = "MOFA-Guided Oncology Research Copilot API"
+    app_name: str = "Cluster-first BRCA research copilot API"
     environment: str = "development"
     cors_origins: list[str] = ["http://localhost:3000"]
     trusted_hosts: list[str] = ["localhost", "127.0.0.1", "testserver"]

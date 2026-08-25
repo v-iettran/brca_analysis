@@ -41,10 +41,26 @@ FIGURES = V2_ROOT / "reports" / "figures" / "v3"
 for d in (RAW, INTERIM, V3, REF, ARTIFACTS, FIGURES):
     d.mkdir(parents=True, exist_ok=True)
 
-SMOKE_TEST = True
+SMOKE_TEST = False
+
+def cohort_ids():
+    import pandas as pd
+    assign = V3 / "cluster_assignments.parquet"
+    if assign.is_file():
+        return pd.read_parquet(assign)["patient_id"].astype(str).str[:12].unique().tolist()
+    expr = INTERIM / "intrinsic_expression.parquet"
+    if expr.is_file():
+        return pd.read_parquet(expr).index.astype(str).str[:12].unique().tolist()
+    return None
 
 def gate(*args, **kwargs):
     kwargs.setdefault("smoke_test", SMOKE_TEST)
+    if "sample_ids" not in kwargs:
+        ids = cohort_ids()
+        if ids is not None:
+            kwargs["sample_ids"] = ids
+            kwargs.setdefault("n", len(ids))
+            kwargs.setdefault("cohort", True)
     return _gate_impl(*args, **kwargs)
 
 print("V2_ROOT =", V2_ROOT, "SMOKE_TEST =", SMOKE_TEST)
@@ -103,33 +119,16 @@ from cluster_selection import (
     STABILITY_THRESHOLD, assert_no_survival, freeze_preregistered_k,
     model_selection_table, precompute_configurations, select_k_star,
 )
-from v3_smoke import make_latent
+from v3_real import encode_latent, load_intrinsic
 
 n_boot = 8 if SMOKE_TEST else 50
 n_init = 3 if SMOKE_TEST else 10
 
-latent_path = INTERIM / "latent_posterior.parquet"
-encoder = "linear_poe"
-ids = None
-Z = None
-if latent_path.is_file():
-    lat = pd.read_parquet(latent_path)
-    mean_cols = [c for c in lat.columns if str(c).startswith("z") or str(c).startswith("mean")]
-    if not mean_cols:
-        mean_cols = [c for c in lat.columns if lat[c].dtype.kind == "f"][:16]
-    Z = lat[mean_cols].to_numpy(float)
-    ids = lat.index.astype(str)
-    meta = ARTIFACTS / "poe_vae_meta.json"
-    if meta.is_file():
-        encoder = json.loads(meta.read_text()).get("encoder", "jax_poe_vae")
-    else:
-        encoder = "jax_poe_vae"
-
-if Z is None:
-    Z, barcodes, _ = make_latent(n=90 if SMOKE_TEST else 300)
-    ids = pd.Index([b[:12] for b in barcodes])
-    encoder = "jax_poe_vae"
-    print("A1 using synthetic latent (upstream parquet absent)")
+expr = load_intrinsic(V2_ROOT)
+ids = pd.Index([str(i) for i in expr.index])
+encoder = "pca_intrinsic_expression"
+Z, _ = encode_latent(expr, random_state=0)
+print("A1 encoding", encoder, "n=", len(ids), "latent", Z.shape)
 
 assert_no_survival(pd.DataFrame(Z, columns=[f"z{i}" for i in range(Z.shape[1])]))
 selection = model_selection_table(Z, n_boot=n_boot, n_init=n_init, random_state=0)
@@ -179,6 +178,7 @@ print(preg)
         """),
         code("""
 gate("NB_A1", "cluster_stability_ari", float(stab[k_star]), 0.60,
+     cohort=True, sample_ids=list(ids), n=len(ids),
      note=f"k*={k_star} bic={bic[k_star]:.0f} sil={sil[k_star]:.3f} available={clustering_available}")
 if not clustering_available:
     print("A1: no discrete structure — clustering_available=false; do not force k")
@@ -199,7 +199,6 @@ import numpy as np
 import pandas as pd
 from cluster_selection import config_id
 from survival_export import curves_by_cluster, multivariate_logrank, sensitivity_logrank
-from v3_smoke import assemble_v3
 
 preg = json.loads((REF / "preregistered_k.json").read_text())
 assign_path = V3 / "cluster_assignments.parquet"
@@ -232,31 +231,13 @@ else:
     used_real = False
 
 if not used_real:
-    print("A2 using synthetic survival (clinical file absent or unmapped)")
-    cohort, _ = assemble_v3(n=90 if SMOKE_TEST else 180)
-    km_rows = []
-    stats = {"preregistered_k": cohort["preregistered"]["k"], "os": cohort["configurations"][f"gmm:full:k={cohort['preregistered']['k']}"]["km"]["os"],
-             "pfi": cohort["configurations"][f"gmm:full:k={cohort['preregistered']['k']}"]["km"]["pfi"]}
-    pd.DataFrame(cohort["survival_sensitivity"]).to_parquet(V3 / "survival_sensitivity.parquet")
+    print("A2: clinical join failed — not synthesizing. Gate fails; framing=descriptive.")
     (V3 / "survival_stats.json").write_text(json.dumps({
-        "k": cohort["preregistered"]["k"],
-        "p_os": stats["os"].get("p_value"),
-        "p_pfi": stats["pfi"].get("p_value"),
-        "n": stats["os"].get("n"),
-        "n_events": stats["os"].get("n_events"),
-        "framing": cohort["gates"]["a2"]["framing"],
-        "passed": cohort["gates"]["a2"]["passed"],
-        "source": "synthetic_smoke" if SMOKE_TEST else "synthetic_fallback",
+        "k": preg.get("k") if "preg" in dir() else None,
+        "p_os": 1.0, "p_pfi": None, "n": 0, "n_events": 0,
+        "framing": "descriptive", "passed": False, "source": "unavailable",
     }, indent=2))
-    # persist per-config KM as parquet-friendly rows
-    rows = []
-    for cid, cfg in cohort["configurations"].items():
-        for endpoint, block in cfg["km"].items():
-            for cl, curve in (block.get("curves") or {}).items():
-                rows.append({"config_id": cid, "endpoint": endpoint, "cluster": cl, "exploratory": cfg["exploratory"],
-                             "p_value": block.get("p_value"), "curve": json.dumps(curve)})
-    pd.DataFrame(rows).to_parquet(V3 / "km_curves.parquet")
-    p_os = float(stats["os"].get("p_value") or 1.0)
+    p_os = 1.0
 else:
     os_res = multivariate_logrank(times_os, labels, events_os)
     p_os = os_res["p_value"]
@@ -300,7 +281,7 @@ import numpy as np
 import pandas as pd
 from cluster_stats import annotate_clusters, comparison_matrix, mannwhitney_one_vs_rest, per_cluster_significant_pathways, welch_one_vs_rest
 from methylation_tf_reliability import methylation_silencing_reliability
-from v3_smoke import assemble_v3, PATHWAYS, TFS, GENES
+from v3_smoke import PATHWAYS, TFS, GENES
 
 preg = json.loads((REF / "preregistered_k.json").read_text())
 assign = pd.read_parquet(V3 / "cluster_assignments.parquet") if (V3 / "cluster_assignments.parquet").is_file() else None
@@ -334,12 +315,11 @@ if assign is not None and path_p.is_file() and preg.get("k"):
         profiles = pd.concat([path_prof, tf_prof, gene_prof], ignore_index=True)
 
 if not used_real:
-    print("A3 using synthetic characterisation")
-    cohort, _ = assemble_v3()
-    profiles = pd.DataFrame(cohort["cluster_profiles"])
-    matrix = cohort["comparison_matrix"]
-    annotations = cohort["cluster_annotations"]
-    counts = {int(k): int(v) for k, v in cohort["gates"]["a3"]["per_cluster_pathway_counts"].items()}
+    print("A3: real pathway/assignment join too thin — not synthesizing.")
+    profiles = pd.DataFrame()
+    matrix = {}
+    annotations = {}
+    counts = {}
 else:
     matrix = comparison_matrix(profiles)
     counts = per_cluster_significant_pathways(profiles)
@@ -385,8 +365,6 @@ from tcga_normals import (
     PROLIF_GENES, cluster_vs_normal_signatures, intrinsic_normal_epithelium,
     proliferation_gate, sample_type_from_barcode, split_tumour_normal,
 )
-from v3_smoke import assemble_v3
-
 expr_p = INTERIM / "intrinsic_expression.parquet"
 deconv_p = INTERIM / "deconvolution_posterior.parquet"
 used_real = False
@@ -421,12 +399,9 @@ if expr_p.is_file():
         (V3 / "a4_meta.json").write_text(json.dumps({**meta, **prolif, "passed": prolif["passed"]}, indent=2))
 
 if not used_real:
-    print("A4 using synthetic normals")
-    cohort, _ = assemble_v3()
-    a4 = cohort["gates"]["a4"]
-    pd.DataFrame(cohort["cluster_profiles"]).to_parquet(V3 / "cluster_vs_normal_signature.parquet")
-    (V3 / "a4_meta.json").write_text(json.dumps(a4, indent=2))
-    prolif = {"passed": a4["passed"], "per_cluster_mean_logfc": a4.get("per_cluster_mean_logfc", {})}
+    print("A4: real tumour/normal split too thin — not synthesizing. Gate will fail.")
+    prolif = {"passed": False, "per_cluster_mean_logfc": {}}
+    (V3 / "a4_meta.json").write_text(json.dumps({"passed": False, "note": "insufficient real normals; no synthetic fallback"}, indent=2))
 
 print(prolif)
         """),
@@ -449,38 +424,31 @@ Smoke/CI uses `synthetic_smoke` or a committed table proxy — never silent full
         code(BOOT),
         code("""
 import pandas as pd
-from gctx_retrieval import load_perturbations, rank_reversal, known_drug_positive_control, SOURCE_SMOKE
-from nearest_lines import nearest_lines, attach_gdsc_curves, subtype_concordance, sample_dose_curve
-from v3_smoke import assemble_v3
-from drug_map import normalize_drug_name
+from gctx_retrieval import load_perturbations, SOURCE_SMOKE
+from v3_real import persist_real
 
 paths = {
     "compact_matrix": REPO_ROOT / "outputs" / "copilot_artifacts" / "compact_gctx.parquet",
     "committed_table": REPO_ROOT / "results" / "mofa_clusters" / "slide_drug_retrieval_table.csv",
 }
-mat, meta, source = load_perturbations(paths)
+mat, _meta, source = load_perturbations(paths)
 print("reversal source", source)
 
-cohort, patients = assemble_v3()
-# Always persist a complete measured-response payload from the helper; overlay real GCTX ranks when available.
-hits_all = []
-if not mat.empty:
-    annot = cohort["cluster_annotations"]
-    # cannot map real signatures without cluster_vs_normal gene vector; keep smoke ranks and record source
-    source_note = source
-else:
-    source_note = SOURCE_SMOKE
+cohort_path = V3 / "cohort_payload.json"
+if not cohort_path.is_file() or json.loads(cohort_path.read_text()).get("synthetic_samples", 0):
+    print("A5 assembling real cohort — never using assemble_v3")
+    persist_real(V2_ROOT, REPO_ROOT, n_boot=8 if SMOKE_TEST else 50, n_init=3 if SMOKE_TEST else 10)
+cohort = json.loads(cohort_path.read_text())
+if int(cohort.get("synthetic_samples") or 0) > 0:
+    raise RuntimeError("A5 refused a synthetic cohort_payload")
+patients = {p.stem.replace("payload_", ""): json.loads(p.read_text()) for p in cohort_path.parent.glob("payload_*.json")}
 
-rows = []
-for lab, block in {str(k): v for k, v in cohort["cluster_annotations"].items()}.items():
-    role = "er_high" if block.get("er_high") else ("her2_amplified" if block.get("her2_amplified") else "other")
-    # pull from first patient in that cluster inside smoke cohort via annotations
-    rows.append({"cluster": lab, "role": role, **cohort["gates"]["a5"]["known_drug_positive_control"]})
+source_note = source if not mat.empty else "unavailable"
+if source_note == SOURCE_SMOKE:
+    source_note = "unavailable"
+    print("A5: perturbation matrix is smoke/proxy — reversal not scored")
 
-pd.DataFrame(cohort["cluster_profiles"]).to_parquet(V3 / "reversal_candidates.parquet")
-# nearest lines / curves from smoke patients
-line_rows = []
-curve_rows = []
+line_rows, curve_rows = [], []
 for pid, payload in patients.items():
     for line in payload.get("nearest_lines") or []:
         line_rows.append({"patient_id": pid, **{k: v for k, v in line.items() if k != "curves"}})
@@ -489,8 +457,9 @@ for pid, payload in patients.items():
                                "points": json.dumps({k: curve[k] for k in ("concentration_nm", "viability", "lower", "upper")})})
 pd.DataFrame(line_rows).to_parquet(V3 / "nearest_cell_lines.parquet")
 pd.DataFrame(curve_rows).to_parquet(V3 / "dose_response_curves.parquet")
-conc = cohort["gates"]["a5"]["nearest_line_subtype_concordance"]
-pos = cohort["gates"]["a5"]["known_drug_positive_control"]
+a5 = cohort.get("gates", {}).get("a5") or {}
+conc = a5.get("nearest_line_subtype_concordance") or {"concordance": 0, "chance": None, "n": 0}
+pos = a5.get("known_drug_positive_control") or {"hits": [], "passed": False}
 (V3 / "a5_meta.json").write_text(json.dumps({"source": source_note, "positive_control": pos, "concordance": conc}, indent=2))
 print(source_note, pos, conc)
         """),
@@ -516,60 +485,34 @@ Encoder identity is required. `assert_safe` runs on every generated string.
         code(BOOT),
         code("""
 from v3_payload import SCHEMA_VERSION, assert_payload_safe, copy_payloads_to_app, validate_cohort, validate_patient, v3_interim, glossary_allows_nll
-from v3_smoke import assemble_v3, persist_smoke
+from v3_real import persist_real
 import json
 
-meta = ARTIFACTS / "poe_vae_meta.json"
-encoder = json.loads(meta.read_text()).get("encoder", "jax_poe_vae") if meta.is_file() else "jax_poe_vae"
-a1 = json.loads((V3 / "a1_meta.json").read_text()) if (V3 / "a1_meta.json").is_file() else {}
-encoder = a1.get("encoder", encoder)
-
-cohort, patients = assemble_v3(encoder=encoder)
-# overlay gate files when present
-if (V3 / "survival_stats.json").is_file():
-    s = json.loads((V3 / "survival_stats.json").read_text())
-    cohort["gates"]["a2"].update({"passed": s.get("passed"), "p_os": s.get("p_os"), "framing": s.get("framing")})
-if (V3 / "a4_meta.json").is_file():
-    a4 = json.loads((V3 / "a4_meta.json").read_text())
-    cohort["gates"]["a4"]["passed"] = a4.get("passed", cohort["gates"]["a4"]["passed"])
-    cohort["gates"]["a4"]["reversal_available"] = bool(a4.get("passed"))
-if (V3 / "a1_meta.json").is_file():
-    cohort["clustering_available"] = bool(a1.get("clustering_available", True))
-    if not cohort["clustering_available"]:
-        cohort["preregistered"]["k"] = None
-
-assert validate_cohort(cohort) == []
-for pid, payload in patients.items():
-    if not glossary_allows_nll(encoder):
-        payload.setdefault("limitations", []).append(
-            "The displayed ellipse comes from a linear product-of-experts fallback; the VAE NLL gate does not apply."
-        )
-    assert validate_patient(payload, cohort) == []
-    assert_payload_safe(payload, pid)
-assert_payload_safe(cohort, "cohort")
-
-dest = v3_interim(V2_ROOT)
-(dest / "cohort_payload.json").write_text(json.dumps(cohort, indent=2))
-for pid, payload in patients.items():
-    (dest / f"payload_{pid}.json").write_text(json.dumps(payload, indent=2))
-copy_payloads_to_app(cohort, patients, REPO_ROOT)
-print("encoder", encoder, "n_patients", len(patients), "glossary_nll", glossary_allows_nll(encoder))
+out = persist_real(V2_ROOT, REPO_ROOT, n_boot=8 if SMOKE_TEST else 50, n_init=3 if SMOKE_TEST else 10)
+cohort = json.loads(Path(out["cohort"]).read_text())
+patients = {p.stem.replace("payload_", ""): json.loads(p.read_text()) for p in Path(out["cohort"]).parent.glob("payload_*.json")}
+encoder = cohort["encoder"]
+print("encoder", encoder, "n", cohort.get("n_samples"), "synthetic", cohort.get("synthetic_samples"), out["provenance"])
         """),
         code("""
 from pathlib import Path
 n_ok = 0
+ids = list((cohort.get("configurations") or {}).get(next(iter(cohort.get("configurations") or {}), ""), {}).get("assignments") or {}).keys() or list(patients)
 for path in [V3 / "cohort_payload.json", *V3.glob("payload_*.json")]:
     obj = json.loads(path.read_text())
     assert_safe(json.dumps(obj), context=str(path.name))
     n_ok += 1
-gate("NB_A6", "payload_safety", float(n_ok), 1.0, note=f"assert_safe passed on {n_ok} payload files")
+gate("NB_A6", "payload_safety", float(n_ok), 1.0, cohort=True, sample_ids=ids, n=len(ids),
+     note=f"assert_safe passed on {n_ok} payload files source={cohort.get('cohort_source')}")
         """),
     ])
 
 
 def main():
     NB_DIR.mkdir(parents=True, exist_ok=True)
-    (NB_DIR / "_gate.py").write_text('"""Spec-compatible import path."""\nfrom gate import gate  # noqa: F401\n')
+    (NB_DIR / "_gate.py").write_text(
+        '"""Spec-compatible import path."""\n\nfrom gate import SYNTHETIC_PREFIXES, gate  # noqa: F401\n\n__all__ = ["SYNTHETIC_PREFIXES", "gate"]\n'
+    )
     a1(); a2(); a3(); a4(); a5(); a6()
 
 

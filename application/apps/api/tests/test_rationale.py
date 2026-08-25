@@ -116,3 +116,25 @@ def test_eval_set_clinical_advice_is_refused():
             assert "does not recommend treatment" in answer
         assert response["rationale"] is not None
         assert response["rationale"]["fallback_used"] is True
+
+
+def test_v3_copilot_does_not_mention_mofa():
+    run = _run()
+    run.result_payload["v3_patient"] = {
+        "modalities_used": ["rna", "cna", "methylation"],
+        "position": {"cluster": {"label": 0, "posterior_mass": 1.0}},
+        "nearest_lines": [{"line_id": "UACC893"}],
+    }
+    run.result_payload["v3_cohort"] = {
+        "preregistered": {"k": 5},
+        "gates": {"a2": {"framing": "descriptive"}},
+    }
+    request = CopilotChatRequest(message="Summarize this patient profile")
+    response = answer_copilot_question(run, request)
+    answer = response["answer"].lower()
+    assert "mofa" not in answer
+    assert "surrogate" not in answer
+    assert "subgroup 1" in answer
+    assert "rna + cna + methylation" in answer
+    assert "evidence, not as recommendations" in answer
+    assert check_safety(response["answer"]) == []

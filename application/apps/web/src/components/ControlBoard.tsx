@@ -83,10 +83,10 @@ export function ControlBoard({
       <fieldset className="mt-3 text-xs">
         <legend className="font-medium text-slate-500">Projection</legend>
         <div className="mt-1 flex gap-3">
-          {(["umap", "pca"] as const).map((p) => (
+          {(["pca", "umap"] as const).map((p) => (
             <label key={p} className="flex items-center gap-1">
               <input type="radio" name="proj" checked={projection === p} onChange={() => onChange({ projection: p })} />
-              {p.toUpperCase()}
+              {p === "umap" ? "UMAP (distances not meaningful)" : "PCA"}
             </label>
           ))}
         </div>

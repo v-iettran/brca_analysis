@@ -1,6 +1,7 @@
 "use client";
 
 import { clusterColor } from "@/lib/clusterPalette";
+import { formatQ, subgroupLabel } from "@/lib/v3-format";
 import type { V3ClusterAnnotation, V3CohortPayload } from "@/lib/v3-types";
 
 export function ClusterDrawer({
@@ -35,7 +36,7 @@ export function ClusterDrawer({
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Cluster drawer</p>
           <h3 className="mt-1 flex items-center gap-2 text-lg font-semibold">
             <span className="inline-block h-3 w-3 rounded-full" style={{ background: clusterColor(cluster, k) }} />
-            Subgroup {cluster}
+            {subgroupLabel(cluster)}
             <span className="font-mono text-sm text-slate-400">n={annotation?.n ?? "—"}</span>
           </h3>
         </div>
@@ -55,7 +56,7 @@ export function ClusterDrawer({
                 style={{ width: `${Math.min(100, Math.abs(row.effect) * 50)}%` }}
               />
             </span>
-            <span className="font-mono text-[11px]">q={row.q.toFixed(3)}</span>
+            <span className="font-mono text-[11px]">q={formatQ(row.q)}</span>
           </li>
         ))}
       </ul>
@@ -76,7 +77,7 @@ export function ClusterDrawer({
       <ul className="mt-1 space-y-1 font-mono text-[11px]">
         {genes.map((row) => (
           <li key={row.feature}>
-            {row.feature} log2FC {(row.log2fc ?? row.effect).toFixed(2)} · q={row.q.toFixed(3)}
+            {row.feature} log2FC {(row.log2fc ?? row.effect).toFixed(2)} · q={formatQ(row.q)}
           </li>
         ))}
       </ul>

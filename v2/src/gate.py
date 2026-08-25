@@ -6,15 +6,31 @@ n=200 is not the same evidence as on n=2,000.
 `insufficient_data` is a distinct state from fail: the join never produced
 enough rows to test the scientific claim (empty GDSC/ALMANAC/CARNIVAL
 identifier join, not "the ODE didn't work").
+
+`synthetic` is a third non-pass state. A gate evaluated on generated samples
+cannot pass at any value, because the generator decided the answer. Spec v3.1
+§0.2: `sample_ids` is required for every gate that consumes a cohort.
 """
 
 from __future__ import annotations
 
 import datetime
 import json
+from collections.abc import Iterable
 from pathlib import Path
 
 from paths import resolve_v2_root
+
+SYNTHETIC_PREFIXES = ("TCGA-SM-", "TCGA-NM-", "SYN-", "SMOKE-")
+
+
+def count_synthetic(sample_ids: Iterable[str] | None) -> tuple[int, int]:
+    """Return (n_synthetic, n_total) for a cohort's sample identifiers."""
+    if sample_ids is None:
+        return 0, 0
+    ids = [str(s) for s in sample_ids]
+    n_syn = sum(1 for s in ids if s.startswith(SYNTHETIC_PREFIXES))
+    return n_syn, len(ids)
 
 
 def gates_path(v2_root: Path | None = None) -> Path:
@@ -36,6 +52,8 @@ def gate(
     smoke_test: bool = False,
     min_n: int | None = None,
     insufficient_data: bool = False,
+    sample_ids: Iterable[str] | None = None,
+    cohort: bool = True,
 ) -> bool:
     if direction == "gte":
         passed = value >= threshold
@@ -51,7 +69,21 @@ def gate(
     if min_n is not None and (n_val is None or n_val < int(min_n)):
         thin = True
 
-    if thin:
+    if cohort and sample_ids is None:
+        passed = False
+        note = f"cohort gate missing sample_ids — cannot pass. {note}".strip()
+        n_syn, n_ids = 0, 0
+    else:
+        n_syn, n_ids = count_synthetic(sample_ids)
+        if n_syn:
+            frac = n_syn / n_ids
+            passed = False
+            note = f"SYNTHETIC {n_syn}/{n_ids} ({frac:.0%}) — cannot pass. {note}".strip()
+
+    if n_syn:
+        status = "synthetic"
+        provisional = False
+    elif thin:
         status = "insufficient_data"
         passed = False
         provisional = False
@@ -79,12 +111,16 @@ def gate(
         "min_n": None if min_n is None else int(min_n),
         "smoke_test": bool(smoke_test),
         "provisional": provisional,
+        "n_synthetic": n_syn,
+        "n_samples_checked": n_ids or None,
         "note": note,
     }
     dest = gates_path(v2_root)
     with dest.open("a") as f:
         f.write(json.dumps(rec) + "\n")
-    if status == "insufficient_data":
+    if status == "synthetic":
+        label = "SYNTHETIC"
+    elif status == "insufficient_data":
         label = "INSUFFICIENT DATA"
     elif status == "provisional_pass":
         label = "PROVISIONAL PASS"
@@ -96,6 +132,8 @@ def gate(
     print(f"{label}  {name}: {value:.4f} ({cmp} {threshold}){n_bit}")
     if note:
         print(f"      {note}")
+    if status == "synthetic":
+        print("      generated samples decided this answer — re-run on real data before claiming anything")
     if status == "insufficient_data":
         print("      not a scientific fail — identifier join / n too thin to test the claim")
     if provisional:

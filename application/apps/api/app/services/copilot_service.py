@@ -28,7 +28,10 @@ def _candidate_for(run: AnalysisRun, drug: str | None) -> dict | None:
 
 
 def _cluster_context(run: AnalysisRun, requested_cluster: int | None) -> dict | None:
-    prediction = (run.result_payload or {}).get("cluster_prediction") or {}
+    payload = run.result_payload or {}
+    if payload.get("v3_patient"):
+        return None
+    prediction = payload.get("cluster_prediction") or {}
     cluster_id = requested_cluster
     if cluster_id is None:
         cluster_id = prediction.get("top_cluster")
@@ -41,13 +44,41 @@ def _cluster_context(run: AnalysisRun, requested_cluster: int | None) -> dict | 
         return None
 
 
+def _v3_summary(payload: dict) -> str | None:
+    patient = payload.get("v3_patient") or {}
+    if not patient:
+        return None
+    cohort = payload.get("v3_cohort") or {}
+    modalities = patient.get("modalities_used") or patient.get("modalities_present") or []
+    modality_text = " + ".join(modalities) if modalities else "available assays"
+    pos = (patient.get("position") or {}).get("cluster") or {}
+    label = int(pos.get("label") or 0) + 1
+    mass = float(pos.get("posterior_mass") or 0)
+    k = (cohort.get("preregistered") or {}).get("k")
+    a2 = (cohort.get("gates") or {}).get("a2") or {}
+    lines = patient.get("nearest_lines") or []
+    parts = [
+        f"This held-out TCGA profile is encoded from {modality_text}.",
+        f"It has {mass:.0%} membership in subgroup {label}" + (f" of {k}." if k else "."),
+        "Subgroups are chosen from molecular structure, never from survival.",
+    ]
+    if a2.get("framing") == "descriptive":
+        parts.append("They did not separate survival in this cohort, so the overlay is descriptive.")
+    if lines:
+        parts.append(
+            f"{len(lines)} measured cell lines resemble this tumour. "
+            "Compounds are shown as evidence, not as recommendations."
+        )
+    return " ".join(parts)
+
+
 def _sources(request: CopilotChatRequest, candidate: dict | None) -> list[dict]:
     question = request.message.lower()
     sources = [{"label": "De-identified patient profile", "section": "patient"}]
     if request.active_view == "clinical_trials" or any(term in question for term in ("trial", "eligib")):
         sources.append({"label": "Clinical trial explorer", "section": "trial"})
-    if any(term in question for term in ("cluster", "mofa", "gene", "rna", "signature", "residual")):
-        sources.append({"label": "MOFA RNA surrogate / signature panels", "section": "mofa"})
+    if any(term in question for term in ("cluster", "subgroup", "mofa", "gene", "rna", "signature", "residual")):
+        sources.append({"label": "Structure-selected subgroup panels", "section": "mofa"})
     if any(term in question for term in ("q5", "pcr", "regimen", "response", "almanac")):
         sources.append({"label": "Q5 / ALMANAC preclinical evidence", "section": "q5"})
     if any(term in question for term in ("predictor", "q2 reliability", "q4 support", "comparator")):
@@ -204,15 +235,19 @@ def _fallback_answer(
             )
         return " ".join(parts)
 
+    v3_text = _v3_summary(payload)
+    if v3_text:
+        return v3_text
+
     if selected_cluster and any(
-        term in question for term in ("cluster", "mofa", "gene", "coefficient", "rna", "signature", "residual")
+        term in question for term in ("cluster", "subgroup", "mofa", "gene", "coefficient", "rna", "signature", "residual")
     ):
         residual = payload.get("residual_signature") or {}
         higher = ", ".join(gene["gene"] for gene in selected_cluster["positive_genes"][:5])
         lower = ", ".join(gene["gene"] for gene in selected_cluster["negative_genes"][:5])
         return (
-            f"MOFA cluster {selected_cluster['cluster_id']} has "
-            f"{selected_cluster['patient_probability']:.0%} probability for this profile. "
+            f"Subgroup {selected_cluster['cluster_id']} has "
+            f"{selected_cluster['patient_probability']:.0%} membership for this profile. "
             f"Cluster signature higher-expression genes include {higher}; lower-expression genes include {lower}. "
             f"The residual signature uses {residual.get('n_up', 0)} up / {residual.get('n_down', 0)} down genes "
             "(patient z minus cluster centroid). These are one-vs-rest / residual contrasts, not causal effects."
@@ -235,7 +270,7 @@ def _fallback_answer(
     )
     return (
         f"This de-identified profile is {receptor_summary or 'missing receptor metadata'}. "
-        f"The RNA-only model places the largest probability on MOFA cluster {top_cluster} "
+        f"The RNA model places the largest probability on subgroup {top_cluster} "
         f"({probability_text}), with {prediction.get('confidence_level', 'unknown')} confidence. "
         f"There are {len(overlap)} dual-list overlap nominations in this revision. "
         "Ask about a specific drug, signature, ALMANAC combination, or trial criterion for cited detail."
@@ -257,6 +292,8 @@ def answer_copilot_question(run: AnalysisRun, request: CopilotChatRequest) -> di
         "patient_metadata": run.patient_metadata or {},
         "administered_regimen": run.administered_regimen,
         "cluster_prediction": payload.get("cluster_prediction"),
+        "v3_patient": payload.get("v3_patient"),
+        "v3_cohort_gates": (payload.get("v3_cohort") or {}).get("gates"),
         "selected_cluster_signature": selected_cluster,
         "overlap_nominations": (payload.get("overlap_nominations") or [])[:8],
         "human_development": [

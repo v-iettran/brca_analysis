@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #f8fafc;
+  --bg: #f1f5f9;
   --surface: #ffffff;
+  --surface-sunken: #f8fafc;
+  --surface-dark: #0f172a;
   --text-primary: #0f172a;
   --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --clinical-900: #0c4a6e;
+  --clinical-700: #0369a1;
+  --clinical-500: #0ea5e9;
   --teal-primary: #0f766e;
   --teal-secondary: #14b8a6;
   --molecular: #7c3aed;
@@ -12,6 +18,9 @@
   --response: #16a34a;
   --warning: #d97706;
   --border: #e2e8f0;
+  --radius-card: 20px;
+  --radius-inner: 12px;
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
   --background: var(--bg);
   --foreground: var(--text-primary);
 }
@@ -44,6 +53,42 @@ h1, h2, h3 {
 .tabular, .font-mono, .tabular-nums {
   font-family: var(--font-plex-mono), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
+}
+
+.display-numeral {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 32px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.panel-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+}
+
+.chart-well {
+  background: var(--surface-sunken);
+  border-radius: var(--radius-inner);
+  padding: 16px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.takeaway {
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 ::selection {

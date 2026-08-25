@@ -82,7 +82,7 @@ def result_fields_from_prototype(payload: dict) -> dict:
         "prototype": payload,
         "v3_cohort": v3_cohort,
         "v3_patient": v3_patient,
-        "cluster_prediction": cluster_prediction_from_prototype(payload),
+        "cluster_prediction": cluster_prediction_from_prototype(v3_patient or payload),
         "analysis_summary": {
             "top_cluster": (payload.get("position") or {}).get("cluster", {}).get("label"),
             "top_probability": (payload.get("position") or {}).get("cluster", {}).get("posterior_mass"),

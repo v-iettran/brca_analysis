@@ -87,7 +87,8 @@ export default function ClinicianAnalysisPage() {
   }
 
   const cluster = result.cluster_prediction;
-  const selectedCluster = cluster?.top_cluster ?? null;
+  const v3Label = result.v3_patient?.position?.cluster?.label;
+  const selectedCluster = v3Label != null ? v3Label + 1 : cluster?.top_cluster ?? null;
   const metadataSummary = [
     `ER ${cleanClinicalStatus(result.patient_metadata.er_status)}`,
     `PR ${cleanClinicalStatus(result.patient_metadata.pr_status)}`,
@@ -164,14 +165,18 @@ export default function ClinicianAnalysisPage() {
               What this analysis found
             </p>
             <h2 className="mt-1 text-lg font-semibold text-slate-950">
-              {result.prototype
+              {result.v3_patient
+                ? `${result.patient_label} · ${(result.v3_patient.modalities_used || result.v3_patient.modalities_present).join(" + ") || "assays"}`
+                : result.prototype
                 ? `${result.patient_label} · ${result.prototype.modalities_present.join(" + ") || "no modalities"}`
                 : `Cluster ${cluster?.top_cluster ?? "—"} · ${cluster?.confidence_level ?? "unknown"} confidence`}
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              {result.prototype
+              {result.v3_patient
+                ? result.v3_patient.description || "Held-out TCGA patient. Structure-selected subgroups. Compounds are shown as evidence, not as recommendations."
+                : result.prototype
                 ? result.prototype.description || "Held-out TCGA prototype patient. Sets, not rankings."
-                : `${cluster ? `${(cluster.top_probability * 100).toFixed(0)}% RNA-only assignment` : "Cluster unavailable"}.
+                : `${cluster ? `${(cluster.top_probability * 100).toFixed(0)}% assignment from available assays` : "Cluster unavailable"}.
               Up to three default-visible research nominations are shown; this is not a treatment ranking.`}
             </p>
             {!result.prototype && (
@@ -195,6 +200,7 @@ export default function ClinicianAnalysisPage() {
 
           <RationaleCard rationale={rationale} />
 
+          {!result.v3_patient && (
           <div id="patient">
             <PatientProfileCard
               patientLabel={result.patient_label}
@@ -202,6 +208,7 @@ export default function ClinicianAnalysisPage() {
               regimen={result.administered_regimen}
             />
           </div>
+          )}
 
           <WarningsPanel warnings={result.warnings} />
 

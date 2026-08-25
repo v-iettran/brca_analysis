@@ -170,13 +170,13 @@ def test_as_count_like_log2_vs_rsem():
 
 def test_gate_insufficient_data_is_not_fail_label(tmp_path):
     ok = gate("NB11", "synergy_vs_almanac_heldout", -0.06, 0.3,
-              n=6, min_n=10, v2_root=tmp_path)
+              n=6, min_n=10, cohort=False, v2_root=tmp_path)
     assert ok is False
     rec = json.loads((tmp_path / "reports" / "gates.jsonl").read_text().strip())
     assert rec["status"] == "insufficient_data"
     assert rec["insufficient_data"] is True
     assert rec["passed"] is False
-    rec2_ok = gate("NB00", "ok", 1.0, 0.5, v2_root=tmp_path)
+    rec2_ok = gate("NB00", "ok", 1.0, 0.5, cohort=False, v2_root=tmp_path)
     rec2 = json.loads((tmp_path / "reports" / "gates.jsonl").read_text().strip().splitlines()[-1])
     assert rec2["status"] == "pass"
 
@@ -215,9 +215,9 @@ def test_resolve_v2_root():
 
 
 def test_gate_pass_and_fail(tmp_path):
-    assert gate("NB00", "ok", 1.0, 0.5, v2_root=tmp_path) is True
-    assert gate("NB00", "bad", 0.1, 0.5, v2_root=tmp_path) is False
-    assert gate("NB00", "small", 0.01, 0.05, direction="lte", v2_root=tmp_path) is True
+    assert gate("NB00", "ok", 1.0, 0.5, cohort=False, v2_root=tmp_path) is True
+    assert gate("NB00", "bad", 0.1, 0.5, cohort=False, v2_root=tmp_path) is False
+    assert gate("NB00", "small", 0.01, 0.05, direction="lte", cohort=False, v2_root=tmp_path) is True
     lines = (tmp_path / "reports" / "gates.jsonl").read_text().strip().splitlines()
     assert len(lines) == 3
     rec = json.loads(lines[0])
@@ -233,6 +233,7 @@ def test_gate_smoke_is_provisional_and_logs_n(tmp_path):
     assert gate(
         "NB02", "purity_concordance", 0.71, 0.7,
         n=200, smoke_test=True, v2_root=tmp_path,
+        sample_ids=[f"TCGA-A2-A{i:03d}" for i in range(200)],
     ) is True
     rec = json.loads((tmp_path / "reports" / "gates.jsonl").read_text().strip())
     assert rec["n"] == 200
@@ -243,6 +244,7 @@ def test_gate_smoke_is_provisional_and_logs_n(tmp_path):
     assert gate(
         "NB02", "purity_concordance", 0.4, 0.7,
         n=200, smoke_test=True, v2_root=tmp_path,
+        sample_ids=[f"TCGA-A2-A{i:03d}" for i in range(200)],
     ) is False
     rec_fail = json.loads((tmp_path / "reports" / "gates.jsonl").read_text().strip().splitlines()[-1])
     assert rec_fail["passed"] is False

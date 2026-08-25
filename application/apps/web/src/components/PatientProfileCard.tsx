@@ -83,6 +83,28 @@ export function PatientProfileCard({
 }) {
   const organ = (metadata.organ_function || {}) as Record<string, unknown>;
   const location = (metadata.location || {}) as Record<string, unknown>;
+  const items: Array<{ label: string; value: string; provenance?: string | null; empty: boolean }> = [
+    {
+      label: "Age",
+      value: metadata.age_at_diagnosis != null ? `${Math.round(metadata.age_at_diagnosis)} years` : "Not recorded",
+      provenance: provenanceLabel(metadata, "age_at_diagnosis"),
+      empty: metadata.age_at_diagnosis == null,
+    },
+    { label: "ER", value: cleanStatus(metadata.er_status), provenance: provenanceLabel(metadata, "er_status"), empty: cleanStatus(metadata.er_status) === "Not recorded" },
+    { label: "PR", value: cleanStatus(metadata.pr_status), provenance: provenanceLabel(metadata, "pr_status"), empty: cleanStatus(metadata.pr_status) === "Not recorded" },
+    { label: "HER2", value: cleanStatus(metadata.her2_status), provenance: provenanceLabel(metadata, "her2_status"), empty: cleanStatus(metadata.her2_status) === "Not recorded" },
+    { label: "Stage", value: cleanStatus(metadata.tumor_stage), provenance: provenanceLabel(metadata, "tumor_stage"), empty: cleanStatus(metadata.tumor_stage) === "Not recorded" },
+    { label: "Grade", value: metadata.tumor_grade != null ? String(metadata.tumor_grade) : "Not recorded", provenance: provenanceLabel(metadata, "tumor_grade"), empty: metadata.tumor_grade == null },
+    { label: "Tumour size", value: metadata.tumor_size_mm != null ? `${metadata.tumor_size_mm} mm` : "Not recorded", provenance: provenanceLabel(metadata, "tumor_size_mm"), empty: metadata.tumor_size_mm == null },
+    { label: "ECOG", value: metadata.ecog_status != null ? String(metadata.ecog_status) : "Not recorded", provenance: provenanceLabel(metadata, "ecog_status"), empty: metadata.ecog_status == null },
+    { label: "Nodes+", value: metadata.lymph_nodes_positive != null ? String(Math.round(metadata.lymph_nodes_positive)) : "Not recorded", empty: metadata.lymph_nodes_positive == null },
+    { label: "Prior therapy", value: cleanStatus(metadata.prior_therapy), provenance: provenanceLabel(metadata, "prior_therapy"), empty: cleanStatus(metadata.prior_therapy) === "Not recorded" },
+    { label: "Organ function", value: formatOrganFunction(organ), provenance: provenanceLabel(metadata, "organ_function"), empty: formatOrganFunction(organ) === "Not recorded" },
+    { label: "Location", value: formatLocation(location), provenance: provenanceLabel(metadata, "location"), empty: formatLocation(location) === "Not recorded" },
+    { label: "Administered regimen", value: regimen.length > 0 ? regimen.join(" + ") : "Not recorded", empty: regimen.length === 0 },
+  ];
+  const filled = items.filter((item) => !item.empty);
+  const emptyCount = items.length - filled.length;
 
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
@@ -104,62 +126,13 @@ export function PatientProfileCard({
       </div>
 
       <dl className="grid grid-cols-2 gap-x-5 gap-y-4 px-5 py-5 sm:grid-cols-4 xl:grid-cols-7">
-        <ProfileItem
-          label="Age"
-          value={
-            metadata.age_at_diagnosis != null
-              ? `${Math.round(metadata.age_at_diagnosis)} years`
-              : "Not recorded"
-          }
-          provenance={provenanceLabel(metadata, "age_at_diagnosis")}
-        />
-        <ProfileItem label="ER" value={cleanStatus(metadata.er_status)} provenance={provenanceLabel(metadata, "er_status")} />
-        <ProfileItem label="PR" value={cleanStatus(metadata.pr_status)} provenance={provenanceLabel(metadata, "pr_status")} />
-        <ProfileItem label="HER2" value={cleanStatus(metadata.her2_status)} provenance={provenanceLabel(metadata, "her2_status")} />
-        <ProfileItem
-          label="Stage"
-          value={cleanStatus(metadata.tumor_stage)}
-          provenance={provenanceLabel(metadata, "tumor_stage")}
-        />
-        <ProfileItem
-          label="Grade"
-          value={metadata.tumor_grade != null ? String(metadata.tumor_grade) : "Not recorded"}
-          provenance={provenanceLabel(metadata, "tumor_grade")}
-        />
-        <ProfileItem
-          label="Tumour size"
-          value={metadata.tumor_size_mm != null ? `${metadata.tumor_size_mm} mm` : "Not recorded"}
-          provenance={provenanceLabel(metadata, "tumor_size_mm")}
-        />
-        <ProfileItem
-          label="ECOG"
-          value={metadata.ecog_status != null ? String(metadata.ecog_status) : "Not recorded"}
-          provenance={provenanceLabel(metadata, "ecog_status")}
-        />
-        <ProfileItem
-          label="Nodes+"
-          value={
-            metadata.lymph_nodes_positive != null
-              ? String(Math.round(metadata.lymph_nodes_positive))
-              : "Not recorded"
-          }
-        />
-        <ProfileItem label="Prior therapy" value={cleanStatus(metadata.prior_therapy)} provenance={provenanceLabel(metadata, "prior_therapy")} />
-        <ProfileItem
-          label="Organ function"
-          value={formatOrganFunction(organ)}
-          provenance={provenanceLabel(metadata, "organ_function")}
-        />
-        <ProfileItem
-          label="Location"
-          value={formatLocation(location)}
-          provenance={provenanceLabel(metadata, "location")}
-        />
-        <ProfileItem
-          label="Administered regimen"
-          value={regimen.length > 0 ? regimen.join(" + ") : "Not recorded"}
-        />
+        {filled.map((item) => (
+          <ProfileItem key={item.label} label={item.label} value={item.value} provenance={item.provenance} />
+        ))}
       </dl>
+      {emptyCount > 0 && (
+        <p className="border-t border-slate-100 px-5 py-3 text-xs text-slate-400">{emptyCount} fields not recorded</p>
+      )}
     </section>
   );
 }

@@ -15,12 +15,12 @@ settings = get_settings()
 def _cluster_fallback(prediction: ClusterPrediction) -> str:
     top_pct = f"{prediction.top_probability:.0%}"
     return (
-        f"The RNA-only surrogate model assigns this profile to MOFA cluster "
-        f"{prediction.top_cluster} with {top_pct} probability "
+        f"The RNA model assigns this profile to subgroup "
+        f"{prediction.top_cluster} with {top_pct} membership "
         f"({prediction.confidence_level} confidence), based on "
         f"{prediction.genes_found}/{prediction.genes_requested} reference genes "
         f"({prediction.gene_coverage:.0%} coverage). This is a soft, "
-        f"probabilistic cluster assignment derived from RNA alone, not a "
+        f"probabilistic cluster assignment derived from RNA, not a "
         f"diagnosis or subtype label."
     )
 
@@ -32,8 +32,8 @@ def explain_cluster_prediction(prediction: ClusterPrediction) -> tuple[str, bool
 
     probs_text = ", ".join(f"cluster {c}: {p:.1%}" for c, p in sorted(prediction.probabilities.items()))
     prompt = (
-        f"A patient's RNA profile was scored against 5 MOFA multi-omics clusters "
-        f"derived from METABRIC. Cluster probabilities: {probs_text}. Gene coverage: "
+        f"A patient's RNA profile was scored against structure-selected subgroups. "
+        f"Subgroup probabilities: {probs_text}. Gene coverage: "
         f"{prediction.gene_coverage:.0%} ({prediction.genes_found}/{prediction.genes_requested} genes). "
         f"Confidence level: {prediction.confidence_level}. In 2-3 sentences, explain this result to a "
         f"clinician in plain language. Do not recommend a treatment or claim diagnostic certainty."

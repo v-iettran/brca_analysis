@@ -22,8 +22,81 @@ def _candidate(run: AnalysisRun, drug: str | None) -> dict | None:
     return next((item for item in rows if str(item.get("drug", "")).lower() == drug.lower()), None)
 
 
+def _v3_rationale(payload: dict) -> GroundedRationaleResponse | None:
+    patient = payload.get("v3_patient") or {}
+    cohort = payload.get("v3_cohort") or {}
+    if not patient:
+        return None
+    modalities = patient.get("modalities_used") or patient.get("modalities_present") or []
+    modality_text = " + ".join(modalities) if modalities else "available assays"
+    pos = (patient.get("position") or {}).get("cluster") or {}
+    label = int(pos.get("label") or 0)
+    mass = float(pos.get("posterior_mass") or 0)
+    k = (cohort.get("preregistered") or {}).get("k")
+    a2 = (cohort.get("gates") or {}).get("a2") or {}
+    lines = patient.get("nearest_lines") or []
+    supporting = [
+        RationaleClaim(
+            text=(
+                f"Using {modality_text}, this tumour has {mass:.0%} membership in subgroup {label + 1}"
+                f"{f' of {k}' if k else ''}."
+            ),
+            kind="support",
+            evidence_keys=["v3_patient.position.cluster", "v3_patient.modalities_used"],
+            section="mofa",
+        )
+    ]
+    if a2.get("framing") == "descriptive":
+        supporting.append(
+            RationaleClaim(
+                text="Subgroups are defined from molecular structure. They did not separate survival in this cohort, so the overlay is descriptive.",
+                kind="support",
+                evidence_keys=["v3_cohort.gates.a2"],
+                section="mofa",
+            )
+        )
+    if lines:
+        supporting.append(
+            RationaleClaim(
+                text=f"{len(lines)} measured cell lines resemble this tumour. Compounds are shown as evidence, not as recommendations.",
+                kind="support",
+                evidence_keys=["v3_patient.nearest_lines"],
+                section="drug",
+            )
+        )
+    limitations = patient.get("limitations") or payload.get("limitations") or []
+    uncertainty = [
+        RationaleClaim(
+            text=limitations[0] if limitations else "All scores are retrospective research signals, not clinical validation.",
+            kind="uncertainty",
+            evidence_keys=["limitations"],
+            section="mofa",
+        )
+    ]
+    summary = (
+        f"Held-out TCGA profile encoded from {modality_text}. "
+        f"Subgroup {label + 1} is a structure-selected cluster. "
+        "Compounds are shown as evidence, not as recommendations."
+    )
+    rationale = GroundedRationaleResponse(
+        summary=summary,
+        supporting_claims=supporting,
+        counter_claims=[],
+        uncertainty=uncertainty,
+        used_llm=False,
+        fallback_used=True,
+        provider="none",
+        model="deterministic",
+    )
+    assert_safe(claims_to_prose(rationale), "v3 rationale")
+    return rationale
+
+
 def deterministic_rationale(run: AnalysisRun, drug: str | None = None) -> GroundedRationaleResponse:
     payload = run.result_payload or {}
+    v3 = _v3_rationale(payload)
+    if v3 is not None:
+        return v3
     prediction = payload.get("cluster_prediction") or {}
     candidate = _candidate(run, drug)
     limitations = payload.get("limitations") or []
@@ -33,7 +106,7 @@ def deterministic_rationale(run: AnalysisRun, drug: str | None = None) -> Ground
         supporting.append(
             RationaleClaim(
                 text=(
-                    f"The RNA-only surrogate places the largest probability on MOFA cluster "
+                    f"The available assays place the largest probability on cluster "
                     f"{prediction.get('top_cluster')} "
                     f"({float(prediction.get('top_probability') or 0):.0%}, "
                     f"{prediction.get('confidence_level')} confidence)."
@@ -81,8 +154,8 @@ def deterministic_rationale(run: AnalysisRun, drug: str | None = None) -> Ground
     ]
     summary = (
         f"This de-identified synthetic profile is a research demonstration. "
-        f"Cluster {prediction.get('top_cluster')} is the top RNA-only assignment; "
-        f"{(candidate or {}).get('drug') or 'no compound'} is shown only as evidence, not a recommendation."
+        f"Cluster {prediction.get('top_cluster')} is the top assignment from the available assays. "
+        "Compounds are shown as evidence, not as recommendations."
     )
     rationale = GroundedRationaleResponse(
         summary=summary,
