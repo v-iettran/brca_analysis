@@ -17,8 +17,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY application/packages/pipeline_core /app/packages/pipeline_core
 RUN pip install --no-cache-dir -e /app/packages/pipeline_core
 
-COPY application/apps/api/requirements.txt /app/apps/api/requirements.txt
-RUN pip install --no-cache-dir -r /app/apps/api/requirements.txt
+# Runtime dependencies only. See the header of requirements-public.txt for why
+# this is not the same file the local environment installs.
+COPY application/apps/api/requirements-public.txt /app/apps/api/requirements-public.txt
+RUN pip install --no-cache-dir -r /app/apps/api/requirements-public.txt
 
 # The application, including app/data/v3 — the cohort and the three held-out
 # patient payloads the panel is built on (~39 MB).
