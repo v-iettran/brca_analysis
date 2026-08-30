@@ -85,7 +85,6 @@ application/
   apps/api/               FastAPI backend, port 8000
   apps/web/               Next.js panel, port 3000
   packages/pipeline_core/ shared library, installed editable
-DEPLOY.md                 putting it online
 ```
 
 Raw data is not in the repository — TCGA and METABRIC archives are ~1 GB each. The
@@ -193,8 +192,20 @@ PYTHONPATH=v3/src v3/.venv/bin/python v3/scripts/run_lincs_reversal.py
 
 ## Deploying
 
-`DEPLOY.md` covers it end to end, with no assumed deployment experience —
-including the three build failures this project actually hit and why each happened.
+Both services run as Docker images on Render, described by
+`application/render.yaml`. The Next.js panel is the only thing exposed publicly; it
+forwards `/api/*` to the FastAPI service, so the browser and the API share an
+origin and no secret ever reaches the page.
+
+Two settings cause almost every failed deploy:
+
+- **`INTERNAL_API_URL` must be set at _build_ time**, declared with `ARG` in the
+  web Dockerfile. Next.js resolves its rewrite rules during `next build` and
+  freezes them into the image, so a value supplied only at runtime arrives too
+  late and every `/api` request returns 404. The build now refuses to proceed
+  rather than produce an image with that fault.
+- **`CORS_ORIGINS` must match the public hostname exactly**, `https://` included.
+  A mismatch gives you a site that loads with every panel empty.
 
 ## Ground rules this repo follows
 
