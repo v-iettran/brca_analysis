@@ -21,22 +21,79 @@ import type {
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
-async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+/**
+ * Gateway statuses that mean "the server is not answering yet", as opposed to
+ * "the server answered and said no". On Render's free tier both services sleep
+ * after about 15 minutes idle, and the API takes roughly a minute to wake — long
+ * enough that the proxy in front of it gives up and returns one of these.
+ */
+const WAKING_STATUS = new Set([502, 503, 504]);
+
+/** Backoff for a sleeping upstream: ~50s in total, which covers a cold start. */
+const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000, 20000];
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * A gateway error arrives as a full HTML page. Putting that in a thrown Error
+ * means the user is shown a wall of markup, which is what used to happen.
+ */
+function describeFailure(status: number, body: string): string {
+  const looksLikeHtml = /^\s*<(!doctype|html)/i.test(body);
+  if (looksLikeHtml) {
+    return WAKING_STATUS.has(status)
+      ? "the server did not respond in time"
+      : `the server returned a ${status} page`;
+  }
+  return body.slice(0, 300);
+}
+
+export type ApiFetchOptions = {
+  /** Called before each retry, so a caller can say what is happening. */
+  onRetry?: (attempt: number, total: number) => void;
+};
+
+async function apiFetch<T>(path: string, init?: RequestInit, options?: ApiFetchOptions): Promise<T> {
   const headers = new Headers(init?.headers);
   if (init?.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    credentials: "include",
-    headers,
-    cache: "no-store",
-  });
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`API ${response.status} ${path}: ${body}`);
+  const method = (init?.method ?? "GET").toUpperCase();
+  // Only idempotent reads are retried. A gateway error does not prove the
+  // request never arrived, so re-sending a POST could start a second analysis.
+  const retryable = method === "GET";
+
+  for (let attempt = 0; ; attempt += 1) {
+    const canRetry = retryable && attempt < RETRY_DELAYS_MS.length;
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE_URL}${path}`, {
+        ...init,
+        credentials: "include",
+        headers,
+        cache: "no-store",
+      });
+    } catch (networkError) {
+      // A dropped connection while the upstream wakes looks like this.
+      if (canRetry) {
+        options?.onRetry?.(attempt + 1, RETRY_DELAYS_MS.length);
+        await sleep(RETRY_DELAYS_MS[attempt]);
+        continue;
+      }
+      throw networkError;
+    }
+
+    if (!response.ok) {
+      if (canRetry && WAKING_STATUS.has(response.status)) {
+        options?.onRetry?.(attempt + 1, RETRY_DELAYS_MS.length);
+        await sleep(RETRY_DELAYS_MS[attempt]);
+        continue;
+      }
+      const body = await response.text();
+      throw new Error(`API ${response.status} ${path}: ${describeFailure(response.status, body)}`);
+    }
+    return response.json() as Promise<T>;
   }
-  return response.json() as Promise<T>;
 }
 
 export function getPublicHealth(): Promise<PublicHealth> {
@@ -56,8 +113,8 @@ export function listSyntheticPatients(): Promise<SyntheticPatientSummary[]> {
   return apiFetch("/patients/synthetic");
 }
 
-export function listDemoPatients(): Promise<DemoPatientSummary[]> {
-  return apiFetch("/patients/demo");
+export function listDemoPatients(options?: ApiFetchOptions): Promise<DemoPatientSummary[]> {
+  return apiFetch("/patients/demo", undefined, options);
 }
 
 export function submitDemoAnalysis(patientId: string): Promise<AnalysisSubmitAck> {

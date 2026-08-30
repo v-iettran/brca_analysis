@@ -35,6 +35,9 @@ export default function HomePage() {
   const [health, setHealth] = useState<PublicHealth | null>(null);
   const [mode, setMode] = useState<"demo" | "upload">("demo");
   const [demoPatients, setDemoPatients] = useState<DemoPatientSummary[] | null>(null);
+  // Free instances sleep after ~15 minutes idle. The first visitor after that
+  // waits about a minute, and silence for a minute reads as a broken page.
+  const [waking, setWaking] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [expression, setExpression] = useState<Record<string, number> | null>(null);
   const [uploadLabel, setUploadLabel] = useState("UPLOAD-LOCAL-001");
@@ -51,12 +54,16 @@ export default function HomePage() {
     getPublicHealth()
       .then(setHealth)
       .catch(() => setHealth(null));
-    listDemoPatients()
+    listDemoPatients({ onRetry: () => setWaking(true) })
       .then((data) => {
+        setWaking(false);
         setDemoPatients(data);
         setSelected((current) => current ?? data[0]?.patient_id ?? null);
       })
-      .catch((err) => setError(String(err)));
+      .catch((err) => {
+        setWaking(false);
+        setError(String(err));
+      });
   }, []);
 
   // Adjust during render rather than in an effect: uploads can be disabled by
@@ -222,7 +229,21 @@ export default function HomePage() {
           <p className="mt-2 text-[13px] text-[var(--text-secondary)]">
             These three profiles were held out of every fit behind this panel.
           </p>
-          {!demoPatients && !error && <p className="mt-6 text-sm text-[var(--text-muted)]">Loading demo patients…</p>}
+          {!demoPatients && !error && (
+            <p className="mt-6 text-sm text-[var(--text-muted)]">
+              {waking ? (
+                <>
+                  Starting the analysis server…{" "}
+                  <span className="text-[var(--text-muted)] opacity-80">
+                    It sleeps when idle and takes about a minute to wake. This page will continue on
+                    its own.
+                  </span>
+                </>
+              ) : (
+                "Loading demo patients…"
+              )}
+            </p>
+          )}
           {demoPatients && (
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               {demoPatients.map((patient) => (
