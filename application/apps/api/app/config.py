@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     allow_custom_uploads: bool = True
 
     allow_external_queries: bool = True
+    # Populated from PAPERCLIP_API_KEY; the short PAPERCLIP name is read
+    # directly by the adapter as a fallback.
     paperclip_api_key: str | None = None
     paperclip_base_url: str = "https://api.paperclip.gxl.ai"
     clinicaltrials_base_url: str = "https://clinicaltrials.gov/api/v2"
@@ -40,9 +42,10 @@ class Settings(BaseSettings):
     llm_max_output_tokens: int = 700
 
     ollama_host: str = "http://localhost:11434"
-    ollama_model: str = "gemma3:4b"
+    ollama_model: str = "qwen3:8b"
     ollama_enabled: bool = True
-    ollama_timeout_seconds: float = 30.0
+    # A local model on first load can take well over 30s to emit a first token.
+    ollama_timeout_seconds: float = 120.0
 
     session_secret: str = "dev-only-change-in-production"
     session_cookie_name: str = "mofa_demo_session"

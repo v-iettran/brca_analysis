@@ -1,74 +1,82 @@
 "use client";
 
-import { useState } from "react";
 import type { SampleQuality } from "@/lib/types";
 import { GlossaryAffordance } from "@/components/GlossaryAffordance";
+import { PanelCard } from "@/components/PanelCard";
 
-const COLORS: Record<string, string> = {
-  malignant: "bg-indigo-600",
-  immune: "bg-cyan-500",
-  stroma: "bg-slate-400",
+// Validated categorical slots; --molecular and --teal-secondary no longer exist.
+const COMPOSITION_TINT: Record<string, string> = {
+  malignant: "var(--cluster-1)",
+  immune: "var(--cluster-3)",
+  stroma: "var(--text-muted)",
 };
 
 export function SampleQualityPanel({ data, takeaway }: { data: SampleQuality; takeaway?: string }) {
-  const [open, setOpen] = useState(false);
   const verdictColor =
     data.verdict === "sufficient"
-      ? "bg-emerald-50 text-emerald-800"
+      ? "var(--response)"
       : data.verdict === "marginal"
-        ? "bg-amber-50 text-amber-900"
-        : "bg-rose-50 text-rose-800";
+        ? "var(--warning)"
+        : "var(--progression)";
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Sample quality</p>
-          <h2 className="mt-1 text-lg font-semibold text-slate-950">Tumour composition</h2>
-          {takeaway && <p className="takeaway mt-1">{takeaway}</p>}
-        </div>
-        <GlossaryAffordance panel="sample_quality" />
-      </header>
-      <div className="mt-4 flex flex-wrap items-end gap-4">
-        <p className="text-4xl font-semibold tabular-nums text-slate-950">
-          {(data.tumour_fraction * 100).toFixed(0)}
-          <span className="ml-1 text-base font-medium text-slate-400">% tumour</span>
-        </p>
-        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${verdictColor}`}>{data.verdict}</span>
+    <PanelCard
+      id="quality"
+      eyebrow="Sample quality"
+      title="Tumour composition"
+      takeaway={takeaway}
+      display={`${(data.tumour_fraction * 100).toFixed(0)}%`}
+      displayCaption="tumour content"
+      bare
+      actions={<GlossaryAffordance panel="sample_quality" />}
+      footnote={data.verdict_reason ?? undefined}
+    >
+      <div className="flex items-center gap-2">
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: verdictColor }} />
+        <span className="text-[11px] font-medium" style={{ color: verdictColor }}>
+          {data.verdict}
+        </span>
       </div>
-      {data.verdict_reason && <p className="mt-2 text-sm text-slate-600">{data.verdict_reason}</p>}
-      <div className="mt-4 flex h-3 overflow-hidden rounded-full bg-slate-100">
+
+      <div className="mt-2.5 flex h-2.5 overflow-hidden rounded-full bg-[var(--line)]">
         {data.composition.map((part) => (
           <div
             key={part.cell_type}
-            className={COLORS[part.cell_type] ?? "bg-slate-300"}
-            style={{ width: `${Math.max(part.fraction * 100, 0)}%` }}
+            style={{
+              width: `${Math.max(part.fraction * 100, 0)}%`,
+              background: COMPOSITION_TINT[part.cell_type] ?? "var(--line-strong)",
+            }}
             title={`${part.cell_type} ${(part.fraction * 100).toFixed(0)}%`}
           />
         ))}
       </div>
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="mt-3 text-xs font-semibold text-indigo-700"
-      >
-        {open ? "Hide cell-type breakdown" : "Show cell-type breakdown"}
-      </button>
-      {open && (
-        <ul className="mt-3 space-y-1 text-sm text-slate-600">
-          {data.composition.map((part) => (
-            <li key={part.cell_type} className="flex justify-between gap-4">
-              <span className="capitalize">{part.cell_type}</span>
-              <span className="font-mono text-xs">
-                {(part.fraction * 100).toFixed(1)}%
-                {part.ci?.length === 2
-                  ? ` (${(part.ci[0] * 100).toFixed(0)}–${(part.ci[1] * 100).toFixed(0)})`
-                  : ""}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+
+      <ul className="mt-3 space-y-1 border-t border-[var(--line)] pt-2.5 text-[11.5px]">
+        {data.composition.map((part) => (
+          <li key={part.cell_type} className="flex items-baseline justify-between gap-4">
+            <span className="inline-flex items-center gap-1.5 capitalize text-[var(--text-secondary)]">
+              <span
+                className="h-2.5 w-2.5 rounded-[2px]"
+                style={{ background: COMPOSITION_TINT[part.cell_type] ?? "var(--line-strong)" }}
+              />
+              {part.cell_type}
+            </span>
+            <span className="font-mono tabular-nums text-[var(--text-primary)]">
+              {(part.fraction * 100).toFixed(1)}%
+              {part.ci?.length === 2 && (
+                <span className="text-[var(--text-muted)]">
+                  {" "}
+                  ({(part.ci[0] * 100).toFixed(0)}-{(part.ci[1] * 100).toFixed(0)})
+                </span>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[10.5px] text-[var(--text-muted)]">
+        Deconvolved cell-type shares with 95% intervals. Tumour content is the malignant share; the rest is
+        the microenvironment the signal has to be read through.
+      </p>
+    </PanelCard>
   );
 }

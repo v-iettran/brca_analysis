@@ -42,7 +42,7 @@ describe("SampleQualityPanel", () => {
         }}
       />
     );
-    expect(screen.getByText("62")).toBeInTheDocument();
+    expect(screen.getByText("62%")).toBeInTheDocument();
     expect(screen.getByText("sufficient")).toBeInTheDocument();
   });
 });

@@ -128,10 +128,13 @@ const basePatient: V3PatientPayload = {
           line_id: "MCF7",
           concentration_nm: [1, 250, 1000],
           viability: [0.95, 0.5, 0.2],
-          lower: [0.9, 0.4, 0.1],
-          upper: [1, 0.6, 0.3],
+          band_lower: [0.9, 0.4, 0.1],
+          band_upper: [1, 0.6, 0.3],
           ic50_nm: 250,
           cmax_nm: 250,
+          max_conc_nm: 1000,
+          ic50_extrapolated: false,
+          auc: 0.6,
           source: "gdsc_measured_hill",
           measured: true,
           simulation: false,
@@ -144,8 +147,8 @@ const basePatient: V3PatientPayload = {
 };
 
 describe("V3Workspace", () => {
-  it("couples exploratory badges and hides p-values off the pre-registered k", () => {
-    render(<V3Workspace cohort={cohort} patient={basePatient} />);
+  it("couples exploratory badges and qualifies p-values off the pre-registered k", () => {
+    render(<V3Workspace cohort={cohort} patient={basePatient} runId="test-run" />);
     expect(screen.getAllByText(/did not separate survival/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/Months since diagnosis/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Overall survival probability")).toBeInTheDocument();
@@ -153,7 +156,8 @@ describe("V3Workspace", () => {
     expect(screen.queryByTestId("exploratory-badge")).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Number of subgroups"), { target: { value: "4" } });
     expect(screen.getAllByText("exploratory").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText(/p-value withheld/i)).toBeInTheDocument();
+    // The exploratory k is named and marked; the p never stands unqualified.
+    expect(screen.getByText(/was not pre-registered/)).toBeInTheDocument();
   });
 
   it("state 3 keeps B2/B3 and suppresses drug retrieval plus prognosis", () => {
@@ -172,7 +176,7 @@ describe("V3Workspace", () => {
       reversal_candidates: null,
       nearest_lines: null,
     };
-    render(<V3Workspace cohort={cohort} patient={abstain} />);
+    render(<V3Workspace cohort={cohort} patient={abstain} runId="test-run" />);
     expect(screen.getByText(/Control board/i)).toBeInTheDocument();
     expect(screen.getByText(/Compare every subgroup/i)).toBeInTheDocument();
     expect(screen.getByText(/Drug retrieval and the prognostic interval are withheld/i)).toBeInTheDocument();
@@ -182,17 +186,18 @@ describe("V3Workspace", () => {
 
   it("omits reversal members when the normal-reference gate failed", () => {
     const failed = { ...cohort, gates: { ...cohort.gates, a4: { passed: false, reversal_available: false } } };
-    render(<V3Workspace cohort={failed} patient={basePatient} />);
+    render(<V3Workspace cohort={failed} patient={basePatient} runId="test-run" />);
     expect(screen.getByText(/reversal is omitted/i)).toBeInTheDocument();
     expect(screen.queryByText("tamoxifen")).not.toBeInTheDocument();
     expect(screen.getByText("MCF7")).toBeInTheDocument();
   });
 
   it("labels dose-response as measurement and tracks the slider", () => {
-    render(<V3Workspace cohort={cohort} patient={basePatient} />);
+    render(<V3Workspace cohort={cohort} patient={basePatient} runId="test-run" />);
     expect(screen.getByText(/Not a simulation/i)).toBeInTheDocument();
     expect(screen.getByTestId("dose-readout").textContent).toMatch(/MCF7/);
-    fireEvent.change(screen.getByLabelText("Concentration (nM)"), { target: { value: "1000" } });
-    expect(screen.getByTestId("dose-readout").textContent).toMatch(/1000 nM/);
+    fireEvent.change(screen.getByLabelText("Concentration"), { target: { value: "1000" } });
+    // Displayed in micromolar, the unit GDSC reports.
+    expect(screen.getByTestId("dose-readout").textContent).toMatch(/1\.0 µM/);
   });
 });

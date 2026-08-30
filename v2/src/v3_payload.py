@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -115,9 +116,27 @@ def v3_interim(v2_root: Path) -> Path:
     return path
 
 
+def _json_safe(value):
+    """Replace non-finite floats with null.
+
+    `json.dumps` emits bare `NaN` and `Infinity`, which Python reads back but
+    which are not valid JSON: a browser's `JSON.parse`, `jq`, and any strict
+    validator all reject them. FastAPI happens to sanitise these on the way out,
+    so the running app never showed it, but the artifact on disk was unreadable
+    to every non-Python consumer.
+    """
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    return value
+
+
 def write_json(path: Path, payload: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2))
+    path.write_text(json.dumps(_json_safe(payload), indent=2, allow_nan=False))
 
 
 def copy_payloads_to_app(cohort: dict, patients: dict[str, dict], repo_root: Path) -> Path:

@@ -24,6 +24,7 @@ from app.services.analysis_service import (
 )
 from app.services.v2_prototype import is_demo_patient
 from app.services.demo_guard import assert_synthetic_only_submission, load_synthetic_profile, public_uploads_blocked
+from app.services.v3_prototype import load_v3_bundle
 from app.services.session_service import get_or_create_session, get_owned_run
 
 router = APIRouter(prefix="/analysis", tags=["analysis"])
@@ -31,6 +32,17 @@ router = APIRouter(prefix="/analysis", tags=["analysis"])
 
 def _to_result_out(run: AnalysisRun) -> AnalysisResultOut:
     payload = run.result_payload or {}
+    stored_patient = payload.get("v3_patient") or {}
+    v3_cohort = payload.get("v3_cohort")
+    v3_patient = stored_patient or None
+    patient_id = str(stored_patient.get("patient_id") or payload.get("patient_id") or "")
+    if patient_id:
+        current_cohort, current_patient = load_v3_bundle(patient_id)
+        if current_cohort:
+            v3_cohort = current_cohort
+        if current_patient:
+            v3_patient = current_patient
+
     return AnalysisResultOut(
         run_id=run.run_id,
         status=run.status,  # type: ignore[arg-type]
@@ -66,8 +78,13 @@ def _to_result_out(run: AnalysisRun) -> AnalysisResultOut:
         error_message=run.error_message,
         current_stage=run.current_stage,
         prototype=payload.get("prototype"),
-        v3_cohort=payload.get("v3_cohort"),
-        v3_patient=payload.get("v3_patient"),
+        # Read the v3 bundle from disk rather than from the run's snapshot.
+        # The cohort and the demo patient payloads are shared, versioned
+        # artifacts, not per-run output: freezing them at submission meant every
+        # link created before a pipeline rerun kept serving the old cohort for
+        # ever, with no way for a reader to tell.
+        v3_cohort=v3_cohort,
+        v3_patient=v3_patient,
         schema_version=payload.get("schema_version"),
         s4_ships=bool(payload.get("s4_ships")),
     )

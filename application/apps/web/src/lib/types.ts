@@ -619,9 +619,19 @@ export interface GroundedRationale {
   model?: string | null;
 }
 
+export interface WithheldAnswer {
+  reasons: string[];
+  unsupported_numbers: string[];
+  unsupported_drugs: string[];
+  banned_phrases: string[];
+}
+
 export interface CopilotChatResponse {
   answer: string;
   used_local_model: boolean;
+  answer_source?: "model" | "deterministic";
+  /** Present when the model's answer failed the grounding gate. */
+  withheld?: WithheldAnswer | null;
   sources: CopilotChatSource[];
   rationale?: GroundedRationale | null;
   provider?: string | null;

@@ -63,7 +63,12 @@ def get_paperclip_client() -> PaperclipClientProtocol | None:
         from app.config import get_settings
 
         # Settings loads apps/api/.env; PaperclipClient.from_env reads os.environ.
-        key = get_settings().paperclip_api_key or os.environ.get("PAPERCLIP_API_KEY")
+        # Accept the short name too: the key is commonly exported as PAPERCLIP.
+        key = (
+            get_settings().paperclip_api_key
+            or os.environ.get("PAPERCLIP_API_KEY")
+            or os.environ.get("PAPERCLIP")
+        )
         if not key:
             return None
         os.environ["PAPERCLIP_API_KEY"] = key

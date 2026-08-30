@@ -223,14 +223,24 @@ def depmap_lines(repo_root: Path, genes: list[str], limit: int = 60) -> tuple[pd
     expr = expr.loc[keep].astype(float)
     names = meta.loc[keep, name_col].astype(str).to_numpy()
     expr.index = names
-    subtypes = meta.loc[keep, "OncotreeSubtype"].astype(str).to_numpy() if "OncotreeSubtype" in meta.columns else [""] * len(keep)
+    def _column(column: str):
+        if column not in meta.columns:
+            return [None] * len(keep)
+        values = meta.loc[keep, column]
+        return [None if pd.isna(v) else str(v) for v in values]
+
     cell_meta = pd.DataFrame(
         {
             "name": names,
             "pam50": [None] * len(names),
             "tissue": "breast",
             "mutations": "",
-            "oncotree_subtype": subtypes,
+            "oncotree_subtype": _column("OncotreeSubtype"),
+            # Carried so the panel can say why a line resembles the tumour.
+            # ModelSubtypeFeatures is the receptor-status call ("HER2+"), which
+            # is the single most recognisable fact about a breast line.
+            "subtype_features": _column("ModelSubtypeFeatures"),
+            "primary_or_metastasis": _column("PrimaryOrMetastasis"),
         },
         index=names,
     )

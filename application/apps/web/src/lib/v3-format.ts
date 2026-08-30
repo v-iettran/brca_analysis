@@ -26,7 +26,8 @@ export function populatedEntries(record: Record<string, unknown> | null | undefi
     if (!text || ["nan", "none", "n/a", "not recorded", "[not available]", "[unknown]"].includes(text.toLowerCase())) {
       empty.push(key);
     } else {
-      filled.push([key.replace(/_/g, " "), text]);
+      // Values as well as keys: TCGA writes subtypes as BRCA_LumB.
+      filled.push([key.replace(/_/g, " "), text.replace(/^BRCA_/, "").replace(/_/g, " ")]);
     }
   }
   return { filled, empty };

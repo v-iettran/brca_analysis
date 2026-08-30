@@ -1,0 +1,49 @@
+# What must never enter a container build.
+#
+# The API image is built from the repository root, so without this file the
+# build would try to package the whole folder — including a 444 MB LINCS
+# signature table, 1.7 GB of DepMap CSVs and 5.5 GB of raw TCGA. None of that is
+# needed at runtime: the app serves pre-computed JSON payloads.
+
+# Version control and local tooling
+.git
+.gitignore
+**/.venv
+**/.venv_copilot
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ipynb_checkpoints
+**/.DS_Store
+.cursor
+
+# Raw inputs — used only by the offline pipeline, never by the running app
+v2/data/raw
+v2/data/interim
+v2/artifacts
+depmap_data
+LINCS_DPDs_archive
+omnipathr-log
+siginfo_beta.txt
+compoundinfo_beta.txt
+geneinfo_beta.txt
+9606.protein.*.txt.gz
+*.gctx
+.RDataTmp
+.Rhistory
+
+# Derived artifacts that are regenerated, plus the 6.3 GB symlinked matrix
+outputs/copilot_artifacts/compact_gctx
+outputs/mofa
+outputs/nbs
+results
+
+# Node and Next build output
+**/node_modules
+**/.next
+**/coverage
+**/dist
+
+# Notebooks and figures
+**/*.ipynb
+v2/reports/figures

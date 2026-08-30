@@ -13,6 +13,7 @@ from pipeline_core.safety import assert_safe, check_safety
 
 from app.adapters.llm.factory import iter_llm_clients
 from app.adapters.llm.ollama_client import SYSTEM_PROMPT
+from app.services.copilot_guard import review_answer
 from app.models_orm import AnalysisRun
 from app.schemas.chat import CopilotChatRequest
 from app.services.cluster_service import cluster_detail
@@ -70,6 +71,109 @@ def _v3_summary(payload: dict) -> str | None:
             "Compounds are shown as evidence, not as recommendations."
         )
     return " ".join(parts)
+
+
+
+def _v3_context(payload: dict) -> dict | None:
+    """The evidence a conclusion about this case would actually rest on.
+
+    The previous context was a two-sentence summary plus the gate block, which
+    is not enough to say anything specific: no subgroup profile, no evidence
+    tiers, no indication of which curves were measured rather than extrapolated.
+    Everything here is copied from the payload verbatim so the grounding gate
+    can trace any number the model repeats.
+    """
+    patient = payload.get("v3_patient") or {}
+    cohort = payload.get("v3_cohort") or {}
+    if not patient or not cohort:
+        return None
+
+    position = (patient.get("position") or {}).get("cluster") or {}
+    cluster = int(position.get("label") or 0)
+    annotation = (cohort.get("cluster_annotations") or {}).get(str(cluster)) or {}
+
+    def top(family: str, limit: int) -> list[dict]:
+        rows = [
+            r
+            for r in (cohort.get("cluster_profiles") or [])
+            if r.get("family") == family
+            and int(r.get("cluster", -1)) == cluster
+            and float(r.get("q") or 1) < 0.05
+        ]
+        rows.sort(key=lambda r: abs(float(r.get("effect") or 0)), reverse=True)
+        return [
+            {
+                "feature": r.get("feature"),
+                "effect": round(float(r.get("effect") or 0), 3),
+                "q": float(r.get("q") or 1),
+                "direction": "raised" if float(r.get("effect") or 0) > 0 else "reduced",
+                "evidence": r.get("evidence_tier"),
+            }
+            for r in rows[:limit]
+        ]
+
+    lines = []
+    for line in (patient.get("nearest_lines") or [])[:5]:
+        lines.append(
+            {
+                "name": line.get("name"),
+                "similarity": line.get("similarity"),
+                "pam50": line.get("pam50"),
+                "pam50_matches_patient": line.get("pam50_match"),
+                "receptor_status": line.get("subtype_features"),
+                "curves": [
+                    {
+                        "drug": c.get("canonical") or c.get("drug"),
+                        "ic50_nm": c.get("ic50_nm"),
+                        "max_tested_nm": c.get("max_conc_nm"),
+                        "ic50_beyond_tested_range": c.get("ic50_extrapolated"),
+                        "development_status": c.get("evidence_label"),
+                    }
+                    for c in (line.get("curves") or [])
+                ],
+            }
+        )
+
+    members = ((patient.get("reversal_candidates") or {}) or {}).get("members") or []
+    by_tier: dict[str, list[str]] = {}
+    for member in members:
+        by_tier.setdefault(str(member.get("evidence_label") or "Not classified"), []).append(
+            str(member.get("canonical") or member.get("drug"))
+        )
+
+    return {
+        "patient": {
+            "id": patient.get("patient_id"),
+            "state": patient.get("state"),
+            "assays_used": patient.get("modalities_used") or patient.get("modalities_present"),
+            "pam50": patient.get("pam50"),
+            "tumour_fraction": (patient.get("sample_quality") or {}).get("tumour_fraction"),
+            "sample_verdict": (patient.get("sample_quality") or {}).get("verdict"),
+            "abstained": (patient.get("abstention") or {}).get("abstained"),
+            "abstention_reason": (patient.get("abstention") or {}).get("reason_text"),
+        },
+        "subgroup": {
+            "number_shown_to_user": cluster + 1,
+            "membership_probability": position.get("posterior_mass"),
+            "size": annotation.get("n"),
+            "pam50_majority": annotation.get("pam50_majority"),
+            "defining_pathways": top("pathway", 6),
+            "defining_transcription_factors": top("tf", 5),
+            "defining_genes": top("gene", 8),
+        },
+        "cohort": {
+            "n_samples": cohort.get("n_samples"),
+            "source": cohort.get("cohort_source"),
+            "preregistered_k": (cohort.get("preregistered") or {}).get("k"),
+            "selection_rule": (cohort.get("preregistered") or {}).get("selection_rule"),
+            "encoder_note": (cohort.get("provenance") or {}).get("encoder_note"),
+        },
+        "gates": cohort.get("gates"),
+        "nearest_cell_lines": lines,
+        "reversal_candidates_by_status": {k: v[:8] for k, v in by_tier.items()},
+        "reversal_candidate_counts": {k: len(v) for k, v in by_tier.items()},
+        "limitations": patient.get("limitations") or [],
+    }
 
 
 def _sources(request: CopilotChatRequest, candidate: dict | None) -> list[dict]:
@@ -287,45 +391,75 @@ def answer_copilot_question(run: AnalysisRun, request: CopilotChatRequest) -> di
     answer, used_model = fallback, False
     provider, model = rationale.provider, rationale.model
     payload = run.result_payload or {}
-    context = {
+    context = _v3_context(payload) or {
         "active_view": request.active_view,
         "patient_metadata": run.patient_metadata or {},
         "administered_regimen": run.administered_regimen,
         "cluster_prediction": payload.get("cluster_prediction"),
-        "v3_patient": payload.get("v3_patient"),
-        "v3_cohort_gates": (payload.get("v3_cohort") or {}).get("gates"),
         "selected_cluster_signature": selected_cluster,
         "overlap_nominations": (payload.get("overlap_nominations") or [])[:8],
-        "human_development": [
-            {
-                "drug": row.get("drug"),
-                "human_development_status": row.get("human_development_status"),
-                "display_action": row.get("display_action"),
-            }
-            for row in (payload.get("overlap_nominations") or [])[:8]
-        ],
         "selected_drug_evidence": candidate,
         "limitations": payload.get("limitations") or [],
     }
+    context["active_view"] = request.active_view
+    context["selected_drug_evidence"] = candidate
+
     history = [{"role": item.role, "content": item.content[:500]} for item in request.history[-6:]]
     prompt = (
-        "Answer the clinician's research-evidence question using only the JSON context below. "
-        "Do not infer missing facts, calculate new values, rank therapies, invent dosages, "
-        "or declare clinical eligibility. Keep the answer under 160 words.\n\n"
-        f"Context: {json.dumps(context, default=str)[:14000]}\n"
+        "You are describing a completed analysis to a clinical researcher.\n\n"
+        "You may connect the panels into a conclusion about THE ANALYSIS: which subgroup this "
+        "tumour falls in, what defines that subgroup, what was retrieved, and what the gates say. "
+        "You may not draw a conclusion about the patient's care.\n\n"
+        "Hard rules:\n"
+        "- Every number you write must appear verbatim in the context. Never compute, round, or "
+        "estimate a new one. If a number is not there, describe it in words instead.\n"
+        "- Never name a drug that is not in the context.\n"
+        "- Never recommend, rank, or call anything best, first-line, or eligible.\n"
+        "- Where the analysis is uncertain or a gate failed, say so plainly rather than smoothing it.\n"
+        "- Under 170 words. No preamble.\n"
+        "- Write plain sentences. No markdown, no headings, no bold, no bullet characters.\n\n"
+        f"Context: {json.dumps(context, default=str)[:16000]}\n"
         f"Recent conversation: {json.dumps(history)}\n"
         f"Question: {request.message}"
     )
+
+    # The model is untrusted input: its answer is reviewed against the payload
+    # and shown only if every number and named drug can be traced back to it.
+    withheld: dict | None = None
     for client in iter_llm_clients():
-        text, used = client.generate_text(prompt, SYSTEM_PROMPT, fallback=fallback)
-        if used and not check_safety(text):
+        # Ask for the raw answer so this gate — not the client — decides, and
+        # can tell the reader which check failed.
+        if hasattr(client, "generate_reviewable"):
+            text, used = client.generate_reviewable(prompt, SYSTEM_PROMPT)
+        else:
+            text, used = client.generate_text(prompt, SYSTEM_PROMPT, fallback=fallback)
+        if not used or not str(text).strip():
+            continue
+        verdict = review_answer(text, context)
+        if verdict["accepted"]:
             answer, used_model = text, True
             provider, model = client.provider_name, client.model_name
+            withheld = None
             break
+        withheld = {
+            "reasons": verdict["reasons"],
+            "unsupported_numbers": verdict["unsupported_numbers"],
+            "unsupported_drugs": verdict["unsupported_drugs"],
+            "banned_phrases": verdict["banned_phrases"],
+        }
+
+    # Keep a verbose answer replayable: ChatHistoryMessage caps content at 2000,
+    # so an over-long reply would 422 every subsequent turn. Trim on a sentence
+    # boundary rather than mid-clause, since the tail usually carries a caveat.
+    if len(answer) > 1900:
+        cut = answer.rfind(". ", 0, 1900)
+        answer = (answer[: cut + 1] if cut > 800 else answer[:1900]).rstrip()
 
     return {
         "answer": answer,
         "used_local_model": used_model and provider == "ollama",
+        "answer_source": "model" if used_model else "deterministic",
+        "withheld": withheld,
         "sources": _sources(request, candidate),
         "rationale": rationale.model_dump(),
         "provider": provider,

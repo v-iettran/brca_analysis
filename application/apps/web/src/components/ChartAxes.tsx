@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-/** Shared SVG axis primitives — every chart must label both axes with units. */
+/** Shared SVG axis primitives. Every chart labels both axes with units. */
 
 export function ChartAxes({
   width,
@@ -25,7 +25,13 @@ export function ChartAxes({
   const innerH = height - pad.t - pad.b;
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="w-full" role="img">
-      <text x={pad.l + innerW / 2} y={height - 4} textAnchor="middle" className="fill-[var(--text-secondary)]" fontSize="11">
+      <text
+        x={pad.l + innerW / 2}
+        y={height - 4}
+        textAnchor="middle"
+        fill="var(--text-secondary)"
+        fontSize="11"
+      >
         {xLabel}
       </text>
       <text
@@ -33,29 +39,43 @@ export function ChartAxes({
         y={pad.t + innerH / 2}
         textAnchor="middle"
         transform={`rotate(-90 12 ${pad.t + innerH / 2})`}
-        className="fill-[var(--text-secondary)]"
+        fill="var(--text-secondary)"
         fontSize="11"
       >
         {yLabel}
       </text>
       {yTicks.map((t) => (
         <g key={`y-${t.v}`}>
-          <line x1={pad.l} x2={pad.l + innerW} y1={t.y} y2={t.y} stroke="#E2E8F0" strokeWidth="1" />
-          <text x={pad.l - 6} y={t.y + 3} textAnchor="end" className="fill-[var(--text-muted)] font-mono" fontSize="11">
+          <line x1={pad.l} x2={pad.l + innerW} y1={t.y} y2={t.y} stroke="var(--line)" strokeWidth="1" />
+          <text
+            x={pad.l - 6}
+            y={t.y + 3}
+            textAnchor="end"
+            fill="var(--text-muted)"
+            className="font-mono"
+            fontSize="10.5"
+          >
             {t.label}
           </text>
         </g>
       ))}
       {xTicks.map((t) => (
         <g key={`x-${t.v}`}>
-          <line x1={t.x} x2={t.x} y1={pad.t + innerH} y2={pad.t + innerH + 4} stroke="#94A3B8" />
-          <text x={t.x} y={pad.t + innerH + 16} textAnchor="middle" className="fill-[var(--text-muted)] font-mono" fontSize="11">
+          <line x1={t.x} x2={t.x} y1={pad.t + innerH} y2={pad.t + innerH + 4} stroke="var(--line-strong)" />
+          <text
+            x={t.x}
+            y={pad.t + innerH + 16}
+            textAnchor="middle"
+            fill="var(--text-muted)"
+            className="font-mono"
+            fontSize="10.5"
+          >
             {t.label}
           </text>
         </g>
       ))}
-      <line x1={pad.l} x2={pad.l} y1={pad.t} y2={pad.t + innerH} stroke="#94A3B8" />
-      <line x1={pad.l} x2={pad.l + innerW} y1={pad.t + innerH} y2={pad.t + innerH} stroke="#94A3B8" />
+      <line x1={pad.l} x2={pad.l} y1={pad.t} y2={pad.t + innerH} stroke="var(--line-strong)" />
+      <line x1={pad.l} x2={pad.l + innerW} y1={pad.t + innerH} y2={pad.t + innerH} stroke="var(--line-strong)" />
       {children}
     </svg>
   );

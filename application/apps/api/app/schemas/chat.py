@@ -25,9 +25,20 @@ class ChatSource(BaseModel):
     section: Literal["patient", "mofa", "q5", "drug", "trial", "literature"]
 
 
+class WithheldAnswer(BaseModel):
+    """Why a model answer was rejected. Shown, never swallowed."""
+
+    reasons: list[str] = Field(default_factory=list)
+    unsupported_numbers: list[str] = Field(default_factory=list)
+    unsupported_drugs: list[str] = Field(default_factory=list)
+    banned_phrases: list[str] = Field(default_factory=list)
+
+
 class CopilotChatResponse(BaseModel):
     answer: str
     used_local_model: bool
+    answer_source: Literal["model", "deterministic"] = "deterministic"
+    withheld: WithheldAnswer | None = None
     sources: list[ChatSource]
     rationale: GroundedRationaleResponse | None = None
     provider: str | None = None

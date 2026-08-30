@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAnalysis, getPublicHealth, getRationale, recalculateAnalysis } from "@/lib/api";
 import type { ActiveView, AnalysisResult, GroundedRationale } from "@/lib/types";
-import { CopilotPanel } from "@/components/CopilotPanel";
+import { CopilotDock } from "@/components/CopilotDock";
 import { ExportButtons } from "@/components/ExportButtons";
 import { OverlapNominationCards } from "@/components/OverlapNominationCards";
 import { PredictorCombinationPanel } from "@/components/PredictorCombinationPanel";
@@ -105,28 +105,28 @@ export default function ClinicianAnalysisPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-lg text-slate-500 shadow-sm transition hover:bg-slate-50"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--line-strong)] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
             aria-label="Back to patient selection"
           >
             ←
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-semibold tracking-tight text-slate-950">
+              <h1 className="text-[17px] font-semibold tracking-tight text-[var(--text-primary)]">
               {result.prototype ? "Patient evidence workspace" : "Overlap evidence workspace"}
             </h1>
-              <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+              <span className="rounded-md border border-[var(--line-strong)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)]">
                 Rev {result.revision ?? 0}
               </span>
             </div>
-            <p className="mt-0.5 text-xs text-slate-400">
+            <p className="mt-0.5 font-mono text-[11px] text-[var(--text-muted)]">
               Immutable run <span className="font-mono">{result.run_id.slice(0, 8)}</span> ·{" "}
               {new Date(result.created_at).toLocaleString()}
             </p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+          <div className="seg">
             {(
               [
                 ["patient_analysis", "Patient Analysis"],
@@ -136,9 +136,7 @@ export default function ClinicianAnalysisPage() {
               <button
                 key={id}
                 onClick={() => setActiveView(id)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                  activeView === id ? "bg-indigo-600 text-white" : "text-slate-600"
-                }`}
+                data-active={activeView === id}
               >
                 {label}
               </button>
@@ -147,7 +145,7 @@ export default function ClinicianAnalysisPage() {
           <ExportButtons runId={result.run_id} />
           <Link
             href={`/analysis/${runId}/technical`}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50"
+            className="rounded-lg border border-[var(--line-strong)] px-3 py-1.5 text-[11px] font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
           >
             Technical audit →
           </Link>
@@ -155,50 +153,50 @@ export default function ClinicianAnalysisPage() {
       </header>
 
       {error && (
-        <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</div>
+        <div className="mb-4 rounded-xl border border-[color-mix(in_oklab,var(--progression)_35%,transparent)] bg-[color-mix(in_oklab,var(--progression)_8%,transparent)] p-3 text-sm text-[var(--progression)]">{error}</div>
       )}
 
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.75fr)_minmax(340px,0.75fr)]">
+      <div className="grid items-start gap-5">
         <div className="min-w-0 space-y-5">
-          <section className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-5 shadow-sm">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
-              What this analysis found
-            </p>
-            <h2 className="mt-1 text-lg font-semibold text-slate-950">
-              {result.v3_patient
-                ? `${result.patient_label} · ${(result.v3_patient.modalities_used || result.v3_patient.modalities_present).join(" + ") || "assays"}`
-                : result.prototype
-                ? `${result.patient_label} · ${result.prototype.modalities_present.join(" + ") || "no modalities"}`
-                : `Cluster ${cluster?.top_cluster ?? "—"} · ${cluster?.confidence_level ?? "unknown"} confidence`}
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              {result.v3_patient
-                ? result.v3_patient.description || "Held-out TCGA patient. Structure-selected subgroups. Compounds are shown as evidence, not as recommendations."
-                : result.prototype
-                ? result.prototype.description || "Held-out TCGA prototype patient. Sets, not rankings."
-                : `${cluster ? `${(cluster.top_probability * 100).toFixed(0)}% assignment from available assays` : "Cluster unavailable"}.
-              Up to three default-visible research nominations are shown; this is not a treatment ranking.`}
-            </p>
-            {!result.prototype && (
-            <ol className="mt-3 space-y-1 text-sm text-slate-700">
-              {headlines.map((row, index) => (
-                <li key={`${row.drug}-${index}`}>
-                  {index + 1}. {row.drug}{" "}
-                  <span className="text-xs text-slate-500">
-                    {row.human_development_label || "research nomination"}
-                    {row.weaker_percentile != null ? ` · dual-support ${(row.weaker_percentile * 100).toFixed(0)}%` : ""}
-                  </span>
-                </li>
-              ))}
-              {headlines.length === 0 && <li>No default-visible human-use compounds for this scenario.</li>}
-            </ol>
-            )}
-            <p className="mt-3 text-xs text-amber-800">
-              Dominant uncertainty: {summary?.dominant_uncertainty || result.limitations?.[0] || "Research signals only."}
-            </p>
-          </section>
+          {!result.v3_patient && (
+            <>
+            <section className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-5 shadow-sm">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">
+                What this analysis found
+              </p>
+              <h2 className="mt-1 text-lg font-semibold text-slate-950">
+                {result.prototype
+                  ? `${result.patient_label} · ${result.prototype.modalities_present.join(" + ") || "no modalities"}`
+                  : `Cluster ${cluster?.top_cluster ?? "—"} · ${cluster?.confidence_level ?? "unknown"} confidence`}
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {result.prototype
+                  ? result.prototype.description || "Held-out TCGA prototype patient. Sets, not rankings."
+                  : `${cluster ? `${(cluster.top_probability * 100).toFixed(0)}% assignment from available assays` : "Cluster unavailable"}.
+                Up to three default-visible research nominations are shown; this is not a treatment ranking.`}
+              </p>
+              {!result.prototype && (
+              <ol className="mt-3 space-y-1 text-sm text-slate-700">
+                {headlines.map((row, index) => (
+                  <li key={`${row.drug}-${index}`}>
+                    {index + 1}. {row.drug}{" "}
+                    <span className="text-xs text-slate-500">
+                      {row.human_development_label || "research nomination"}
+                      {row.weaker_percentile != null ? ` · dual-support ${(row.weaker_percentile * 100).toFixed(0)}%` : ""}
+                    </span>
+                  </li>
+                ))}
+                {headlines.length === 0 && <li>No default-visible human-use compounds for this scenario.</li>}
+              </ol>
+              )}
+              <p className="mt-3 text-xs text-amber-800">
+                Dominant uncertainty: {summary?.dominant_uncertainty || result.limitations?.[0] || "Research signals only."}
+              </p>
+            </section>
 
-          <RationaleCard rationale={rationale} />
+            <RationaleCard rationale={rationale} />
+            </>
+          )}
 
           {!result.v3_patient && (
           <div id="patient">
@@ -215,7 +213,7 @@ export default function ClinicianAnalysisPage() {
           {activeView === "patient_analysis" ? (
             <>
               {result.v3_cohort && result.v3_patient ? (
-                <V3Workspace cohort={result.v3_cohort} patient={result.v3_patient} />
+                <V3Workspace cohort={result.v3_cohort} patient={result.v3_patient} runId={result.run_id} />
               ) : result.prototype ? (
                 <PrototypeWorkspace payload={result.prototype} />
               ) : (
@@ -257,7 +255,7 @@ export default function ClinicianAnalysisPage() {
                 </>
               )}
               {(result.limitations || []).length > 0 && (
-                <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 text-xs text-amber-900">
+                <section className="rounded-xl border border-[var(--line)] p-4 text-[11px] text-[var(--text-secondary)]">
                   <h3 className="font-semibold">Scientific limitations</h3>
                   <ul className="mt-2 list-disc space-y-1 pl-4">
                     {(result.limitations || []).map((item) => (
@@ -278,7 +276,7 @@ export default function ClinicianAnalysisPage() {
           )}
         </div>
 
-        <CopilotPanel
+        <CopilotDock
           runId={result.run_id}
           selectedDrug={selectedDrug}
           selectedCluster={selectedCluster}

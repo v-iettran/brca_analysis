@@ -5,23 +5,13 @@ import { useRouter } from "next/navigation";
 import {
   getAnalysisProgress,
   getPublicHealth,
-  getSyntheticPatient,
   listDemoPatients,
-  listSyntheticPatients,
   parseExpressionFile,
   submitAnalysisAsync,
   submitDemoAnalysis,
-  submitSyntheticAnalysis,
 } from "@/lib/api";
 import type { AnalysisProgress, DemoPatientSummary, PatientMetadata, PublicHealth, SyntheticPatientSummary } from "@/lib/types";
 import { AnalyzingModal } from "@/components/AnalyzingModal";
-import { cleanClinicalStatus } from "@/lib/format";
-
-const SCENARIO_LABEL: Record<string, string> = {
-  high_confidence: "High confidence",
-  mixed_cluster: "Mixed cluster",
-  low_quality: "Low-coverage / abstention",
-};
 
 const EMPTY_META: PatientMetadata = {
   age_at_diagnosis: null,
@@ -43,8 +33,7 @@ const ENV_PUBLIC_DEMO = process.env.NEXT_PUBLIC_PUBLIC_DEMO_MODE === "true";
 export default function HomePage() {
   const router = useRouter();
   const [health, setHealth] = useState<PublicHealth | null>(null);
-  const [mode, setMode] = useState<"demo" | "synthetic" | "upload">("demo");
-  const [patients, setPatients] = useState<SyntheticPatientSummary[] | null>(null);
+  const [mode, setMode] = useState<"demo" | "upload">("demo");
   const [demoPatients, setDemoPatients] = useState<DemoPatientSummary[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [expression, setExpression] = useState<Record<string, number> | null>(null);
@@ -68,16 +57,11 @@ export default function HomePage() {
         setSelected((current) => current ?? data[0]?.patient_id ?? null);
       })
       .catch((err) => setError(String(err)));
-    listSyntheticPatients()
-      .then((data) => {
-        setPatients(data);
-      })
-      .catch(() => undefined);
   }, []);
 
-  useEffect(() => {
-    if (!allowUploads && mode === "upload") setMode("demo");
-  }, [allowUploads, mode]);
+  // Adjust during render rather than in an effect: uploads can be disabled by
+  // the server after the page has already chosen a mode.
+  if (!allowUploads && mode === "upload") setMode("demo");
 
   async function pollUntilDone(runId: string) {
     for (;;) {
@@ -102,19 +86,6 @@ export default function HomePage() {
       if (mode === "demo") {
         if (!selected) return;
         const ack = await submitDemoAnalysis(selected);
-        await pollUntilDone(ack.run_id);
-        return;
-      }
-      if (mode === "synthetic") {
-        if (!selected) return;
-        const ack = publicDemo
-          ? await submitSyntheticAnalysis(selected)
-          : await submitAnalysisAsync(await getSyntheticPatient(selected).then((patient) => ({
-              patient_label: patient.synthetic_id,
-              expression: patient.expression,
-              metadata: patient.metadata,
-              administered_regimen: patient.administered_regimen,
-            })));
         await pollUntilDone(ack.run_id);
         return;
       }
@@ -148,48 +119,86 @@ export default function HomePage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10 sm:py-16">
+    <main className="mx-auto max-w-6xl px-6 py-10 sm:py-14">
       <AnalyzingModal open={submitting} progress={progress} error={error} />
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl shadow-slate-200/40">
-        <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="px-7 py-10 sm:px-10 sm:py-14">
-            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700">
-              <span className="h-2 w-2 rounded-full bg-indigo-500" />
-              Public oncology research demo
+      {/* No decorative gradient. The panel that sat here was an indigo-to-fuchsia
+          wash carrying no information; in a clinical tool every visual element
+          should encode something. */}
+      <section className="panel p-7 sm:p-9">
+        <p className="eyebrow">Breast cancer research panel demo</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.025em] text-[var(--text-primary)] sm:text-4xl">
+          Patient analysis from molecular profile.
+        </h1>
+        <p className="mt-4 text-[15px] leading-7 text-[var(--text-secondary)]">
+          This panel takes bulk RNA from a breast tumour and works out which molecular subgroup it
+          belongs to, what defines that subgroup, and which laboratory evidence exists for it — showing
+          its working at every step, including where the evidence runs out.
+        </p>
+
+        <ol className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+          {[
+            [
+              "Separate the tumour from its surroundings",
+              "Bulk RNA is deconvolved against a single-cell breast reference, so the signal is the malignant cells rather than the immune and stromal cells mixed in with them.",
+            ],
+            [
+              "Fix the number of subgroups in advance",
+              "k is chosen from BIC, silhouette and bootstrap stability, and frozen before survival is looked at, so only that pre-registered split may report a log-rank p-value.",
+            ],
+            [
+              "Say what defines each subgroup",
+              "Every pathway, transcription factor and gene is tested one-vs-rest and against adjacent normal tissue, with literature standing shown beside each result.",
+            ],
+            [
+              "Show what was measured, not inferred",
+              "Similar cell lines come from DepMap with their real GDSC dose-response curves, and compounds are retrieved by signature reversal against LINCS.",
+            ],
+          ].map(([title, body], index) => (
+            <li key={title} className="flex gap-3">
+              <span className="mt-0.5 font-mono text-[12px] tabular-nums text-[var(--text-muted)]">
+                {index + 1}
+              </span>
+              <span>
+                <span className="block text-[13.5px] font-semibold text-[var(--text-primary)]">{title}</span>
+                <span className="mt-0.5 block text-[13px] leading-6 text-[var(--text-secondary)]">{body}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+
+        <p className="mt-6 text-[15px] leading-7 text-[var(--text-primary)]">
+          Go ahead and try out held-out profiles from TCGA-BRCA.
+        </p>
+
+        <dl className="mt-7 grid gap-x-8 gap-y-4 border-t border-[var(--line)] pt-6 sm:grid-cols-3">
+          {[
+            ["1082", "TCGA-BRCA tumours", "the full cohort, no generated samples"],
+            ["4", "pre-registered subgroups", "selected from structure alone"],
+            ["151", "overall-survival events", "what the log-rank test rests on"],
+          ].map(([value, label, note]) => (
+            <div key={label}>
+              <dt className="readout text-[var(--text-primary)]">{value}</dt>
+              <dd className="mt-1.5 text-[13px] font-medium text-[var(--text-secondary)]">{label}</dd>
+              <dd className="mt-0.5 text-[11px] text-[var(--text-muted)]">{note}</dd>
             </div>
-            <h1 className="mt-5 max-w-2xl text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl">
-              Sets, not rankings — three held-out TCGA patients.
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-500">
-              Sample quality, latent position, molecular state, then a prediction set. One patient
-              abstains on purpose. This is not a treatment recommendation.
-            </p>
-          </div>
-          <div className="relative flex min-h-72 items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-10">
-            <div className="relative w-full max-w-sm space-y-3 text-white">
-              <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-100">Workflow</p>
-                <ol className="mt-3 space-y-2 text-sm">
-                  <li>1. Choose a held-out TCGA patient</li>
-                  <li>2. Read composition, position, and pathway state</li>
-                  <li>3. A set — or an abstention — never a ranked best drug</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
+          ))}
+        </dl>
+
+        <p className="mt-6 text-[12px] text-[var(--text-muted)]">
+          Compounds are shown as evidence, not as recommendations. This is a research prototype, not a
+          clinical decision-support device.
+        </p>
       </section>
 
       {error && !submitting && (
-        <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div>
+        <div className="mt-6 rounded-[var(--radius-inner)] border border-[color-mix(in_oklab,var(--progression)_35%,transparent)] bg-[color-mix(in_oklab,var(--progression)_8%,transparent)] p-4 text-sm text-[var(--progression)]">{error}</div>
       )}
 
       <div className="mt-8 flex flex-wrap gap-2">
         {(
           [
             ["demo", "Held-out TCGA"],
-            ["synthetic", "v1 synthetic"],
             ...(allowUploads ? ([["upload", "Upload RNA + metadata"]] as const) : []),
           ] as const
         ).map(([id, label]) => (
@@ -198,11 +207,9 @@ export default function HomePage() {
             onClick={() => {
               setMode(id);
               if (id === "demo") setSelected(demoPatients?.[0]?.patient_id ?? null);
-              if (id === "synthetic") setSelected(patients?.[0]?.synthetic_id ?? null);
             }}
-            className={`rounded-full px-4 py-2 text-sm font-semibold ${
-              mode === id ? "bg-indigo-600 text-white" : "bg-white text-slate-600 border border-slate-200"
-            }`}
+            className="pressable border border-[var(--line)] bg-[var(--surface)] px-3.5 py-1.5 text-[13px] font-medium text-[var(--text-secondary)]"
+            aria-pressed={mode === id}
           >
             {label}
           </button>
@@ -211,11 +218,11 @@ export default function HomePage() {
 
       {mode === "demo" && (
         <section className="mt-8">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Choose a held-out patient</h2>
-          <p className="mt-2 text-sm text-slate-500">
-            These three IDs were excluded from the VAE, PRECISE, and conformal fits.
+          <h2 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">Choose a held-out patient</h2>
+          <p className="mt-2 text-[13px] text-[var(--text-secondary)]">
+            These three profiles were held out of every fit behind this panel.
           </p>
-          {!demoPatients && !error && <p className="mt-8 text-sm text-slate-500">Loading demo patients…</p>}
+          {!demoPatients && !error && <p className="mt-6 text-sm text-[var(--text-muted)]">Loading demo patients…</p>}
           {demoPatients && (
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               {demoPatients.map((patient) => (
@@ -224,50 +231,16 @@ export default function HomePage() {
                   onClick={() => setSelected(patient.patient_id)}
                   className={`relative overflow-hidden rounded-2xl border p-5 text-left transition ${
                     selected === patient.patient_id
-                      ? "border-indigo-400 bg-indigo-50/70 shadow-md ring-2 ring-indigo-100"
-                      : "border-slate-200 bg-white shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+                      ? "border-[var(--cluster-1)] bg-[var(--surface-raised)]"
+                      : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line-strong)]"
                   }`}
                 >
-                  <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-indigo-700 shadow-sm">
+                  <span className="rounded border border-[var(--line-strong)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
                     {patient.role.replace(/_/g, " ")}
                   </span>
-                  <div className="mt-4 font-mono text-xs text-slate-400">{patient.patient_id}</div>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{patient.title}</p>
-                  <p className="mt-2 min-h-16 text-sm leading-6 text-slate-600">{patient.description}</p>
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {mode === "synthetic" && (
-        <section className="mt-8">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Choose a synthetic scenario</h2>
-          {!patients && !error && <p className="mt-8 text-sm text-slate-500">Loading demonstration patients…</p>}
-          {patients && (
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              {patients.map((patient) => (
-                <button
-                  key={patient.synthetic_id}
-                  onClick={() => setSelected(patient.synthetic_id)}
-                  className={`relative overflow-hidden rounded-2xl border p-5 text-left transition ${
-                    selected === patient.synthetic_id
-                      ? "border-indigo-400 bg-indigo-50/70 shadow-md ring-2 ring-indigo-100"
-                      : "border-slate-200 bg-white shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
-                  }`}
-                >
-                  <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-indigo-700 shadow-sm">
-                    {SCENARIO_LABEL[patient.scenario] ?? patient.scenario}
-                  </span>
-                  <div className="mt-4 font-mono text-xs text-slate-400">{patient.synthetic_id}</div>
-                  <p className="mt-2 min-h-16 text-sm leading-6 text-slate-600">{patient.description}</p>
-                  <div className="mt-4 flex flex-wrap gap-2 text-[10px] font-semibold text-slate-500">
-                    <span className="rounded-md bg-slate-100 px-2 py-1">ER {cleanClinicalStatus(patient.metadata.er_status)}</span>
-                    <span className="rounded-md bg-slate-100 px-2 py-1">
-                      Stage {String(patient.metadata.tumor_stage ?? "n/a")}
-                    </span>
-                  </div>
+                  <div className="mt-4 font-mono text-xs text-[var(--text-muted)]">{patient.patient_id}</div>
+                  <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">{patient.title}</p>
+                  <p className="mt-2 min-h-16 text-sm leading-6 text-[var(--text-secondary)]">{patient.description}</p>
                 </button>
               ))}
             </div>
@@ -276,9 +249,9 @@ export default function HomePage() {
       )}
 
       {mode === "upload" && allowUploads && (
-        <section className="mt-8 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-950">Upload normalized RNA</h2>
-          <p className="text-sm text-slate-500">
+        <section className="panel mt-6 space-y-4 p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Upload normalized RNA</h2>
+          <p className="text-sm text-[var(--text-secondary)]">
             Local scientific mode only. CSV/TSV with <code>gene,expression</code>. Backend validation remains
             authoritative.
           </p>
@@ -289,14 +262,14 @@ export default function HomePage() {
             className="block w-full text-sm"
           />
           {expression && (
-            <p className="text-xs font-medium text-emerald-700">Parsed {Object.keys(expression).length} genes.</p>
+            <p className="text-xs font-medium text-[var(--response)]">Parsed {Object.keys(expression).length} genes.</p>
           )}
-          <label className="block text-xs font-semibold text-slate-600">
+          <label className="block text-xs font-medium text-[var(--text-secondary)]">
             Patient label
             <input
               value={uploadLabel}
               onChange={(e) => setUploadLabel(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-[var(--radius-inner)] border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)]"
             />
           </label>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -310,16 +283,16 @@ export default function HomePage() {
                 ["menopausal_state", "Menopause"],
               ] as const
             ).map(([key, label]) => (
-              <label key={key} className="text-xs font-semibold text-slate-600">
+              <label key={key} className="text-xs font-medium text-[var(--text-secondary)]">
                 {label}
                 <input
                   value={String(metadata[key] ?? "")}
                   onChange={(e) => setMetadata({ ...metadata, [key]: e.target.value || null })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-[var(--radius-inner)] border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)]"
                 />
               </label>
             ))}
-            <label className="text-xs font-semibold text-slate-600">
+            <label className="text-xs font-medium text-[var(--text-secondary)]">
               Age
               <input
                 type="number"
@@ -330,10 +303,10 @@ export default function HomePage() {
                     age_at_diagnosis: e.target.value ? Number(e.target.value) : null,
                   })
                 }
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-[var(--radius-inner)] border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)]"
               />
             </label>
-            <label className="text-xs font-semibold text-slate-600">
+            <label className="text-xs font-medium text-[var(--text-secondary)]">
               ECOG
               <input
                 type="number"
@@ -344,15 +317,15 @@ export default function HomePage() {
                     ecog_status: e.target.value ? Number(e.target.value) : null,
                   })
                 }
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-[var(--radius-inner)] border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)]"
               />
             </label>
-            <label className="text-xs font-semibold text-slate-600">
+            <label className="text-xs font-medium text-[var(--text-secondary)]">
               Administered regimen (comma-separated)
               <input
                 value={regimenText}
                 onChange={(e) => setRegimenText(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-[var(--radius-inner)] border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)]"
                 placeholder="paclitaxel, doxorubicin"
               />
             </label>
@@ -364,13 +337,13 @@ export default function HomePage() {
         <button
           onClick={() => void handleAnalyze()}
           disabled={submitting || (mode === "upload" ? !expression : !selected)}
-          className="rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-[var(--radius-inner)] bg-[var(--cluster-1)] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {submitting ? "Analyzing…" : "Run research analysis →"}
         </button>
-        <p className="text-xs leading-5 text-slate-400">
+        <p className="text-xs leading-5 text-[var(--text-muted)]">
           {publicDemo
-            ? "Hosted demo: synthetic IDs only. No RNA is submitted or retained."
+            ? "Hosted demo: held-out TCGA profiles only. No RNA is submitted or retained."
             : "Local mode can keep RNA on this machine. External services receive drug, target, or gene terms only."}
         </p>
       </div>

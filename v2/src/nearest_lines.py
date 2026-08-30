@@ -92,19 +92,43 @@ def sample_dose_curve(
     h: float = 1.0,
     cmax_nm: float | None = None,
     n_points: int = 25,
-    ci_frac: float = 0.08,
+    band_frac: float = 0.08,
+    min_conc_nm: float | None = None,
+    max_conc_nm: float | None = None,
+    auc: float | None = None,
+    z_score: float | None = None,
+    rmse: float | None = None,
 ) -> dict:
+    """Sample a fitted Hill curve, carrying the assay's own bounds and quality.
+
+    `band_lower`/`band_upper` are a fixed +/-8% display band, NOT a fitted
+    confidence interval. They are named for what they are so nothing downstream
+    can present them as inferential.
+
+    `min_conc_nm`/`max_conc_nm` are the concentrations GDSC actually tested. An
+    IC50 outside that window is an extrapolation of the fit, not a measurement,
+    and the interface has to say so: palbociclib on EFM-192A fits to ~50 uM
+    against a 10 uM ceiling, which is a no-effect curve rather than a potency.
+    """
     grid = np.logspace(0, 5, n_points)  # 1 nM – 100 µM
     y = hill_viability(grid, ic50_nm, h)
-    lo = np.clip(y - ci_frac * (1 - y), 0, 1)
-    hi = np.clip(y + ci_frac * (1 - y), 0, 1)
+    lo = np.clip(y - band_frac * (1 - y), 0, 1)
+    hi = np.clip(y + band_frac * (1 - y), 0, 1)
+    extrapolated = max_conc_nm is not None and float(ic50_nm) > float(max_conc_nm)
     return {
         "concentration_nm": grid.tolist(),
         "viability": y.tolist(),
-        "lower": lo.tolist(),
-        "upper": hi.tolist(),
+        "band_lower": lo.tolist(),
+        "band_upper": hi.tolist(),
+        "band_kind": "display_band_8pct",
         "ic50_nm": float(ic50_nm),
         "cmax_nm": None if cmax_nm is None else float(cmax_nm),
+        "min_conc_nm": None if min_conc_nm is None else float(min_conc_nm),
+        "max_conc_nm": None if max_conc_nm is None else float(max_conc_nm),
+        "ic50_extrapolated": bool(extrapolated),
+        "auc": None if auc is None else float(auc),
+        "z_score": None if z_score is None else float(z_score),
+        "rmse": None if rmse is None else float(rmse),
         "source": "gdsc_measured_hill",
         "measured": True,
         "simulation": False,
@@ -145,7 +169,23 @@ def attach_gdsc_curves(
                 continue
             ln = float(pd.to_numeric(hit[ic50_col], errors="coerce").median())
             ic50 = ln_ic50_um_to_nm(ln) if "LN" in ic50_col.upper() else ln
-            curve = sample_dose_curve(ic50, cmax_nm=pk_map.get(want))
+
+            def _stat(column: str, scale: float = 1.0):
+                if column not in hit.columns:
+                    return None
+                value = pd.to_numeric(hit[column], errors="coerce").median()
+                return None if pd.isna(value) else float(value) * scale
+
+            # GDSC concentrations are micromolar; the payload speaks nanomolar.
+            curve = sample_dose_curve(
+                ic50,
+                cmax_nm=pk_map.get(want),
+                min_conc_nm=_stat("MIN_CONC", 1000.0),
+                max_conc_nm=_stat("MAX_CONC", 1000.0),
+                auc=_stat("AUC"),
+                z_score=_stat("Z_SCORE"),
+                rmse=_stat("RMSE"),
+            )
             curve["drug"] = drug
             curve["canonical"] = want
             curve["line_id"] = line["line_id"]

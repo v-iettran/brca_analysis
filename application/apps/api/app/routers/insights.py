@@ -52,17 +52,34 @@ def get_cluster_gene_literature(
     db: Session = Depends(get_db),
 ) -> dict:
     limit_general(request)
-    get_owned_run(db, run_id, request)
-    try:
-        present = cluster_contains_gene(cluster_id, gene)
-    except (ValueError, FileNotFoundError) as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    run = get_owned_run(db, run_id, request)
+
+    # A v3 run carries its own feature table, so the v1 cluster signature is not
+    # the right allowlist for it. Either source may vouch for the feature; the
+    # guard exists to stop arbitrary free-text reaching the literature service,
+    # not to prefer one pipeline.
+    present = _v3_cohort_has_feature(run, gene)
+    if not present:
+        try:
+            present = cluster_contains_gene(cluster_id, gene)
+        except (ValueError, FileNotFoundError) as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
     if not present:
         raise HTTPException(
             status_code=404,
-            detail=f"Gene {gene!r} is not present in the committed signature for cluster {cluster_id}",
+            detail=f"Feature {gene!r} is not part of this run's cluster characterisation",
         )
     return search_literature_for_gene(db, gene, cluster_id)
+
+
+def _v3_cohort_has_feature(run, feature: str) -> bool:
+    payload = run.result_payload or {}
+    cohort = payload.get("v3_cohort") or {}
+    wanted = str(feature).strip().lower()
+    for row in cohort.get("cluster_profiles") or []:
+        if str(row.get("feature", "")).strip().lower() == wanted:
+            return True
+    return False
 
 
 @router.get("/trials")
@@ -144,10 +161,13 @@ def chat_with_copilot(
     if not body.history and run.chat_messages:
         from app.schemas.chat import ChatHistoryMessage
 
+        # Stored messages may predate the length cap, and the schema rejects
+        # anything over 2000 characters — so one verbose reply already on disk
+        # would 500 every later turn in that conversation. Truncate on read.
         body.history = [
-            ChatHistoryMessage(role=m.role, content=m.content)  # type: ignore[arg-type]
+            ChatHistoryMessage(role=m.role, content=(m.content or "")[:1900])  # type: ignore[arg-type]
             for m in sorted(run.chat_messages, key=lambda x: x.created_at)[-8:]
-            if m.role in {"user", "assistant"}
+            if m.role in {"user", "assistant"} and (m.content or "").strip()
         ]
     response = CopilotChatResponse.model_validate(answer_copilot_question(run, body))
     db.add(

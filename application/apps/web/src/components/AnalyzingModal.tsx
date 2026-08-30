@@ -41,32 +41,32 @@ export function AnalyzingModal({
   )?.label;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-600">Analysis in progress</p>
-        <h2 className="mt-2 text-xl font-semibold text-slate-950">Building the evidence workspace</h2>
-        <p className="mt-2 text-sm text-slate-500">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(6,10,16,0.55)] p-4 backdrop-blur-sm">
+      <div className="panel w-full max-w-lg p-6">
+        <p className="eyebrow">Analysis in progress</p>
+        <h2 className="mt-2 text-lg font-semibold text-[var(--text-primary)]">Building the evidence workspace</h2>
+        <p className="mt-2 text-[13px] text-[var(--text-secondary)]">
           Stages reflect real backend progress. No artificial delays are added.
         </p>
-        <div className="mt-5 overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-cyan-50 p-4">
+        <div className="well mt-5 overflow-hidden p-4">
           <div className="flex items-center gap-5">
             <div className="relative h-24 w-24 shrink-0" aria-hidden="true">
-              <div className="absolute inset-2 animate-spin rounded-full border border-dashed border-indigo-300 [animation-duration:8s]" />
+              <div className="absolute inset-2 animate-spin rounded-full border border-dashed border-[var(--line-strong)] [animation-duration:8s]" />
               <div className="absolute inset-5 animate-spin rounded-full border-2 border-cyan-300 border-l-transparent [animation-direction:reverse] [animation-duration:3s]" />
-              <div className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 shadow-lg shadow-indigo-200" />
+              <div className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--cluster-1)]" />
               <span className="absolute left-1 top-1/2 h-2 w-2 animate-pulse rounded-full bg-fuchsia-400" />
               <span className="absolute right-2 top-3 h-2.5 w-2.5 animate-bounce rounded-full bg-cyan-400 [animation-duration:2s]" />
-              <span className="absolute bottom-2 left-1/2 h-1.5 w-1.5 animate-ping rounded-full bg-indigo-500" />
+              <span className="absolute bottom-2 left-1/2 h-1.5 w-1.5 animate-ping rounded-full bg-[var(--cluster-1)]" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">Molecular signal scan</p>
-              <p className="mt-1 text-sm font-medium text-slate-800">
+              <p className="eyebrow">Molecular signal scan</p>
+              <p className="mt-1 text-[13px] font-medium text-[var(--text-primary)]">
                 {currentStageLabel ?? "Preparing patient expression profile"}
               </p>
-              <p className="mt-1 text-xs text-slate-500">{completedStages} of {STAGE_ORDER.length} analysis stages complete</p>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white shadow-inner">
+              <p className="mt-1 text-[11px] text-[var(--text-muted)]">{completedStages} of {STAGE_ORDER.length} analysis stages complete</p>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--line)]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 transition-all duration-700"
+                  className="h-full rounded-full bg-[var(--cluster-1)] transition-all duration-700"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -87,12 +87,12 @@ export function AnalyzingModal({
                 key={stageId}
                 className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-sm ${
                   failed
-                    ? "border-rose-200 bg-rose-50 text-rose-800"
+                    ? "border-[var(--line)] text-[var(--progression)]"
                     : done
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      ? "border-[var(--line)] text-[var(--response)]"
                       : active
-                        ? "border-indigo-200 bg-indigo-50 text-indigo-800"
-                        : "border-slate-100 bg-slate-50 text-slate-500"
+                        ? "border-[var(--line-strong)] text-[var(--text-primary)]"
+                        : "border-[var(--line)] text-[var(--text-muted)]"
                 }`}
               >
                 <span className={`font-mono text-[10px] uppercase ${active ? "animate-pulse" : ""}`}>
@@ -103,7 +103,7 @@ export function AnalyzingModal({
             );
           })}
         </ol>
-        {error && <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
+        {error && <p className="mt-4 rounded-[var(--radius-inner)] border border-[color-mix(in_oklab,var(--progression)_35%,transparent)] p-3 text-sm text-[var(--progression)]">{error}</p>}
       </div>
     </div>
   );

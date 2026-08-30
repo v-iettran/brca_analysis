@@ -1,12 +1,11 @@
 export function ResearchBanner() {
   return (
-    <div className="w-full border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs font-medium text-amber-900">
-      <span className="mr-2 rounded-full bg-amber-200/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+    <div className="w-full border-b border-[var(--line)] bg-[var(--shell)] px-4 py-1.5 text-center text-[11px] text-[var(--text-muted)]">
+      <span className="mr-2 rounded-md border border-[color-mix(in_oklab,var(--warning)_45%,transparent)] px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.1em] text-[var(--warning)]">
         Research prototype
       </span>
-      Not a clinical decision-support device. Hosted demos use synthetic patients only; RNA is not
-      uploaded or stored. Results are exploratory evidence summaries and require independent clinical
-      review.
+      Not a clinical decision-support device. Results are exploratory evidence summaries and require independent
+      clinical review.
     </div>
   );
 }

@@ -1,0 +1,618 @@
+{
+  "schema": "breast_evidence_sets_v1",
+  "curated_date": "2026-08-30",
+  "default_tier": "not_established",
+  "tiers": {
+    "established": "Acts on breast-cancer practice today: subtyping, prognosis, or a drug target.",
+    "investigational": "Real breast-cancer literature, but no established clinical action.",
+    "not_established": "No curated breast-cancer role in this reference. Absence of evidence, not evidence of absence."
+  },
+  "caveat": "A curated list, not a computed result. It says what is established in the literature, never that a feature is or is not important in this cohort.",
+  "entries": {
+    "ACTR3B": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "AKT1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "ANLN": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "AR": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "ARID1A": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "ATM": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "AURKA": {
+      "tier": "established",
+      "source": "Proliferation module used by the A4 known-biology gate",
+      "kind": "gene"
+    },
+    "Androgen": {
+      "tier": "investigational",
+      "source": "PROGENy pathway with breast-cancer literature, no established clinical action",
+      "kind": "pathway"
+    },
+    "BAG1": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "BCL2": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "BIRC5": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "BLVRA": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "BRCA1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "BRCA2": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "CCNB1": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "CCND1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "CCNE1": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "CDC20": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "CDC6": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "CDH1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "CDH3": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "CDK4": {
+      "tier": "established",
+      "source": "Target of a breast standard-of-care agent (pipeline_core.nominations)",
+      "kind": "gene"
+    },
+    "CDK6": {
+      "tier": "established",
+      "source": "Target of a breast standard-of-care agent (pipeline_core.nominations)",
+      "kind": "gene"
+    },
+    "CEBPB": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "CEBPD": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "CENPF": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "CEP55": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "CHEK2": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "CTNNB1": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "CXXC5": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "E2F1": {
+      "tier": "established",
+      "source": "Proliferation module used by the A4 known-biology gate",
+      "kind": "gene"
+    },
+    "E2F2": {
+      "tier": "established",
+      "source": "Proliferation module used by the A4 known-biology gate",
+      "kind": "gene"
+    },
+    "EGFR": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "EHF": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "ELF5": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "ERBB2": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "ERBB3": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "ESR1": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "EXO1": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "Estrogen": {
+      "tier": "established",
+      "source": "PROGENy pathway targeted by breast standard-of-care therapy",
+      "kind": "pathway"
+    },
+    "FGFR1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "FGFR4": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "FOS": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "FOXA1": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "FOXC1": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "FOXM1": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "GATA3": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "GPR160": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "GRB7": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "HIF1A": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "Hypoxia": {
+      "tier": "investigational",
+      "source": "PROGENy pathway with breast-cancer literature, no established clinical action",
+      "kind": "pathway"
+    },
+    "JAK-STAT": {
+      "tier": "investigational",
+      "source": "PROGENy pathway with breast-cancer literature, no established clinical action",
+      "kind": "pathway"
+    },
+    "JUN": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "KIF2C": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "KMT2C": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "KRT14": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "KRT17": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "KRT5": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "MAP3K1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "MAPK": {
+      "tier": "established",
+      "source": "PROGENy pathway targeted by breast standard-of-care therapy",
+      "kind": "pathway"
+    },
+    "MAPT": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "MDM2": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "MELK": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "MIA": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "MKI67": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "MLPH": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "MMP11": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "MTOR": {
+      "tier": "established",
+      "source": "Target of a breast standard-of-care agent (pipeline_core.nominations)",
+      "kind": "gene"
+    },
+    "MYBL2": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "MYC": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "NAT1": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "NCOA2": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "NCOA3": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "NCOR1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "NDC80": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "NF1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "NFKB1": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "NFkB": {
+      "tier": "investigational",
+      "source": "PROGENy pathway with breast-cancer literature, no established clinical action",
+      "kind": "pathway"
+    },
+    "NR3C1": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "NUF2": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "ORC6": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "PALB2": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "PARP1": {
+      "tier": "established",
+      "source": "Target of a breast standard-of-care agent (pipeline_core.nominations)",
+      "kind": "gene"
+    },
+    "PARP2": {
+      "tier": "established",
+      "source": "Target of a breast standard-of-care agent (pipeline_core.nominations)",
+      "kind": "gene"
+    },
+    "PGR": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "PHGDH": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "PI3K": {
+      "tier": "established",
+      "source": "PROGENy pathway targeted by breast standard-of-care therapy",
+      "kind": "pathway"
+    },
+    "PIK3CA": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "PTEN": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "PTPRD": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "PTTG1": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "RB1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "RELA": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "RRM2": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "RUNX1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "SF3B1": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "SFRP1": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "SLC39A6": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "SNAI1": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "SOX10": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "SP1": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "STAT3": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "STAT5A": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "STAT5B": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "TBX3": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "TFAP2C": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "TGFb": {
+      "tier": "investigational",
+      "source": "PROGENy pathway with breast-cancer literature, no established clinical action",
+      "kind": "pathway"
+    },
+    "TMEM45B": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "TNFa": {
+      "tier": "investigational",
+      "source": "PROGENy pathway with breast-cancer literature, no established clinical action",
+      "kind": "pathway"
+    },
+    "TOP2A": {
+      "tier": "established",
+      "source": "Target of a breast standard-of-care agent (pipeline_core.nominations)",
+      "kind": "gene"
+    },
+    "TP53": {
+      "tier": "established",
+      "source": "Recurrent breast-cancer driver (TCGA-BRCA / COSMIC consensus)",
+      "kind": "gene"
+    },
+    "TUBB": {
+      "tier": "established",
+      "source": "Target of a breast standard-of-care agent (pipeline_core.nominations)",
+      "kind": "gene"
+    },
+    "TWIST1": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "TYMS": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "Trail": {
+      "tier": "investigational",
+      "source": "PROGENy pathway with breast-cancer literature, no established clinical action",
+      "kind": "pathway"
+    },
+    "UBE2C": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "UBE2T": {
+      "tier": "established",
+      "source": "PAM50 intrinsic subtyping panel (Parker et al. 2009)",
+      "kind": "gene"
+    },
+    "VEGF": {
+      "tier": "investigational",
+      "source": "PROGENy pathway with breast-cancer literature, no established clinical action",
+      "kind": "pathway"
+    },
+    "WNT": {
+      "tier": "investigational",
+      "source": "PROGENy pathway with breast-cancer literature, no established clinical action",
+      "kind": "pathway"
+    },
+    "ZEB1": {
+      "tier": "investigational",
+      "source": "Transcription factor with breast-cancer literature, no established clinical action",
+      "kind": "tf"
+    },
+    "p53": {
+      "tier": "established",
+      "source": "PROGENy pathway targeted by breast standard-of-care therapy",
+      "kind": "pathway"
+    }
+  }
+}

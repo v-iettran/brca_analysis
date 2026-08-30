@@ -1,28 +1,119 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Clinical instrument.
+
+   Light is the primary mode: clinical software is read in bright rooms and on
+   projectors, and the entrance and workspace must be one theme rather than two.
+   Dark is a full peer, selected by the reader's system preference.
+
+   Chrome is neutral on purpose. Colour is a data channel here — the cluster
+   slots and the diverging effect scale carry meaning, so the interface itself
+   stays out of their way. The only chrome hue is amber, and it means one thing:
+   the configuration on screen is not the pre-registered one.
+
+   Every cluster hue below was validated with the dataviz validator against
+   these exact surfaces. Do not hand-edit a hex without re-running it.
+--------------------------------------------------------------------------- */
+
 :root {
-  --bg: #f1f5f9;
+  color-scheme: light;
+
+  --ground: #eef1f5;
+  --shell: #e7ebf1;
   --surface: #ffffff;
-  --surface-sunken: #f8fafc;
-  --surface-dark: #0f172a;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --clinical-900: #0c4a6e;
-  --clinical-700: #0369a1;
-  --clinical-500: #0ea5e9;
-  --teal-primary: #0f766e;
-  --teal-secondary: #14b8a6;
-  --molecular: #7c3aed;
-  --progression: #dc2626;
-  --response: #16a34a;
-  --warning: #d97706;
-  --border: #e2e8f0;
-  --radius-card: 20px;
-  --radius-inner: 12px;
-  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
-  --background: var(--bg);
+  --surface-raised: #f7f9fc;
+  --well: #f7f9fb;
+
+  --line: #dbe1ea;
+  --line-strong: #b9c3d1;
+
+  --text-primary: #10151c;
+  --text-secondary: #4a5462;
+  --text-muted: #78828f;
+
+  /* Reserved: outcome direction only. Never a series, hover, or button. */
+  --progression: #c23434;
+  --response: #0f7a3d;
+
+  /* The one chrome hue: "not pre-registered". */
+  --warning: #9a5b06;
+  --warning-line: #e0b978;
+  --warning-wash: #fdf4e4;
+
+  /* Cluster slots — validated, adjacent pairlist, surface #ffffff.
+     worst CVD ΔE 9.1 · worst normal-vision ΔE 19.6 · all >= 3:1 contrast */
+  --cluster-1: #2a78d6;
+  --cluster-2: #eb6834;
+  --cluster-3: #1baf7a;
+  --cluster-4: #eda100;
+  --cluster-5: #e87ba4;
+  --cluster-6: #008300;
+  --cluster-7: #4a3aa7;
+  --cluster-8: #e34948;
+
+  /* Diverging: warm/cool poles, neutral gray midpoint.
+     worst CVD ΔE 21.6 · normal-vision ΔE 32.3 */
+  --diverge-neg: #2a78d6;
+  --diverge-pos: #e34948;
+  --diverge-mid: #eceef1;
+
+  --radius-panel: 12px;
+  --radius-inner: 8px;
+  --shadow-panel: 0 1px 2px rgba(16, 21, 28, 0.05);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-state: 400ms;
+  --dur-hover: 160ms;
+
+  --border: var(--line);
+  --bg: var(--ground);
+  --background: var(--ground);
   --foreground: var(--text-primary);
+  --surface-sunken: var(--well);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --ground: #0b0f16;
+    --shell: #0f141d;
+    --surface: #111827;
+    --surface-raised: #17202f;
+    --well: #0d131d;
+
+    --line: #1f2937;
+    --line-strong: #33415a;
+
+    --text-primary: #eef2f8;
+    --text-secondary: #9aa8bf;
+    --text-muted: #6b7688;
+
+    --progression: #e66767;
+    --response: #4ade80;
+
+    --warning: #f0ad3e;
+    --warning-line: #6b4a13;
+    --warning-wash: #241a08;
+
+    /* Same eight hues, stepped for the dark surface #111827 and validated
+       as a set: worst CVD ΔE 8.4 · worst normal-vision ΔE 19.3 */
+    --cluster-1: #3987e5;
+    --cluster-2: #d95926;
+    --cluster-3: #199e70;
+    --cluster-4: #c98500;
+    --cluster-5: #d55181;
+    --cluster-6: #008300;
+    --cluster-7: #9085e9;
+    --cluster-8: #e66767;
+
+    --diverge-neg: #3987e5;
+    --diverge-pos: #e66767;
+    --diverge-mid: #2b3444;
+
+    --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
 }
 
 @theme inline {
@@ -34,69 +125,207 @@
 
 html {
   font-size: 16px;
+  background: var(--ground);
 }
 
 body {
-  background: var(--bg);
+  background: var(--ground);
   color: var(--text-primary);
   font-family: var(--font-plex-sans), system-ui, sans-serif;
   font-weight: 400;
   line-height: 1.5;
-  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3 {
   line-height: 1.2;
   font-weight: 600;
+  letter-spacing: -0.011em;
 }
 
-.tabular, .font-mono, .tabular-nums {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+.font-mono, .tabular-nums, th, td {
   font-variant-numeric: tabular-nums;
 }
 
-.display-numeral {
+.font-mono, .tabular {
   font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 32px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-  line-height: 1;
 }
 
-.panel-card {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+/* --- panel -------------------------------------------------------------- */
+
+.panel {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
   background: var(--surface);
-  box-shadow: var(--shadow-card);
-  padding: 24px;
+  box-shadow: var(--shadow-panel);
 }
 
-.chart-well {
-  background: var(--surface-sunken);
+.well {
+  background: var(--well);
+  border: 1px solid var(--line);
   border-radius: var(--radius-inner);
-  padding: 16px;
 }
+
+/* --- exploratory state -------------------------------------------------- */
+
+/* When k leaves the pre-registered value the whole instrument changes state.
+   This is the visual half of the rule that keeps the log-rank p honest.
+
+   The state is drawn as an outline on each affected panel. Overriding --line
+   recoloured every internal border too — table rules, chart gridlines, chip
+   outlines — which restated the same one bit of information dozens of times and
+   tinted parts of the interface that carry data. */
+.shell-exploratory .panel {
+  outline: 1.5px solid var(--warning-line);
+  outline-offset: -1.5px;
+}
+
+.exploratory-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 4px;
+  border: 1px solid var(--warning-line);
+  background: var(--warning-wash);
+  color: var(--warning);
+  padding: 0.125rem 0.4rem;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* --- clickable affordances ---------------------------------------------- */
+
+/* Anything interactive announces itself: a pointer cursor, a hover surface, and
+   a visible pressed state. */
+.pressable {
+  cursor: pointer;
+  border-radius: 6px;
+  transition:
+    background var(--dur-hover) var(--ease-out),
+    border-color var(--dur-hover) var(--ease-out),
+    color var(--dur-hover) var(--ease-out);
+}
+
+.pressable:hover {
+  background: color-mix(in oklab, var(--text-primary) 6%, transparent);
+}
+
+.pressable[aria-pressed="true"],
+.pressable[data-active="true"] {
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--well);
+}
+
+.seg button,
+.seg label {
+  padding: 0.25rem 0.625rem;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-hover) var(--ease-out), color var(--dur-hover) var(--ease-out);
+}
+
+.seg button:hover,
+.seg label:hover {
+  color: var(--text-primary);
+  background: color-mix(in oklab, var(--text-primary) 6%, transparent);
+}
+
+.seg [data-active="true"] {
+  background: var(--surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -6px;
+  height: 15px;
+  width: 15px;
+  border-radius: 999px;
+  background: var(--text-primary);
+  border: 3px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--line-strong);
+  transition: transform var(--dur-hover) var(--ease-out);
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+
+input[type="range"]::-moz-range-thumb {
+  height: 15px;
+  width: 15px;
+  border: 3px solid var(--surface);
+  border-radius: 999px;
+  background: var(--text-primary);
+}
+
+:where(a, button, input, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--cluster-1);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --- type --------------------------------------------------------------- */
 
 .eyebrow {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.readout {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(26px, 3.4vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1;
 }
 
 .takeaway {
   font-size: 13px;
   color: var(--text-secondary);
+  max-width: 66ch;
 }
 
 ::selection {
-  background: rgba(15, 118, 110, 0.18);
-}
-
-button, a {
-  -webkit-tap-highlight-color: transparent;
+  background: color-mix(in oklab, var(--cluster-1) 22%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -104,5 +333,6 @@ button, a {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

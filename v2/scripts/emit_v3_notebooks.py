@@ -453,8 +453,8 @@ for pid, payload in patients.items():
     for line in payload.get("nearest_lines") or []:
         line_rows.append({"patient_id": pid, **{k: v for k, v in line.items() if k != "curves"}})
         for curve in line.get("curves") or []:
-            curve_rows.append({"patient_id": pid, "line_id": line["line_id"], **{k: v for k, v in curve.items() if k not in {"concentration_nm", "viability", "lower", "upper"}},
-                               "points": json.dumps({k: curve[k] for k in ("concentration_nm", "viability", "lower", "upper")})})
+            curve_rows.append({"patient_id": pid, "line_id": line["line_id"], **{k: v for k, v in curve.items() if k not in {"concentration_nm", "viability", "band_lower", "band_upper"}},
+                               "points": json.dumps({k: curve[k] for k in ("concentration_nm", "viability", "band_lower", "band_upper")})})
 pd.DataFrame(line_rows).to_parquet(V3 / "nearest_cell_lines.parquet")
 pd.DataFrame(curve_rows).to_parquet(V3 / "dose_response_curves.parquet")
 a5 = cohort.get("gates", {}).get("a5") or {}

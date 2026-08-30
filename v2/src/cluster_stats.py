@@ -109,15 +109,38 @@ def welch_one_vs_rest(values: pd.DataFrame, labels: np.ndarray, family: str = "g
     return out
 
 
-def comparison_matrix(profiles: pd.DataFrame, top_n: int = 30) -> dict:
-    """(features × clusters) of signed effects. Non-significant cells stay in the matrix with q."""
+FAMILY_QUOTAS = {"pathway": 14, "tf": 10, "gene": 30}
+
+
+def comparison_matrix(
+    profiles: pd.DataFrame,
+    top_n: int = 30,
+    per_family: dict[str, int] | None = FAMILY_QUOTAS,
+) -> dict:
+    """(features × clusters) of signed effects. Non-significant cells stay in the matrix with q.
+
+    Selection is per family, not global. Ranking all families together lets the
+    largest family crowd out the others — genes outnumber pathways 4:1 here, so
+    a global top-N returned two of fourteen pathways and made the heatmap's
+    pathway band unreadable. Rows are ranked by max |effect| within their own
+    group, which is also the order spec v3.1 §1.4 asks the heatmap to show.
+    """
     if profiles.empty:
         return {"features": [], "families": [], "clusters": [], "effects": [], "q": []}
     pivot = profiles.pivot_table(index="feature", columns="cluster", values="effect", aggfunc="first")
     qtab = profiles.pivot_table(index="feature", columns="cluster", values="q", aggfunc="first")
     fam = profiles.drop_duplicates("feature").set_index("feature")["family"]
-    var = pivot.var(axis=1).fillna(0.0)
-    keep = list(var.sort_values(ascending=False).head(top_n).index)
+    strength = pivot.abs().max(axis=1).fillna(0.0)
+    if per_family:
+        keep = []
+        for family, quota in per_family.items():
+            members = [f for f in pivot.index if str(fam.get(f)) == family]
+            keep.extend(strength.loc[members].sort_values(ascending=False).head(quota).index.tolist())
+        if not keep:
+            keep = list(strength.sort_values(ascending=False).head(top_n).index)
+    else:
+        var = pivot.var(axis=1).fillna(0.0)
+        keep = list(var.sort_values(ascending=False).head(top_n).index)
     pivot = pivot.loc[keep]
     qtab = qtab.reindex(index=keep, columns=pivot.columns)
     clusters = [int(c) for c in pivot.columns]

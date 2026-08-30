@@ -1,30 +1,42 @@
-# Render Blueprint for the public oncology research demo.
-# The web service is public; the API is a private service reached only via
-# Next.js /api rewrites. Hosted LLM credentials stay on the API.
+# Render Blueprint for the public breast-cancer research panel.
+#
+# Two services. The web service is the only thing on the public internet; the
+# API is a private service that Render exposes only inside its own network, and
+# the browser reaches it through Next.js /api rewrites. That means the browser
+# and the API share an origin, so there is no CORS to configure and no API URL
+# for anyone to call directly. Secrets stay on the API and never reach the page.
+#
+# BEFORE DEPLOYING: replace every occurrence of `YOUR-SERVICE-NAME` below with
+# the web service name you choose. Render will give it the hostname
+# https://YOUR-SERVICE-NAME.onrender.com, and the two allowlists must match it.
 services:
   - type: web
-    name: mofa-web
+    name: brca-panel-web
     runtime: docker
+    plan: starter
     dockerfilePath: ./application/apps/web/Dockerfile
     dockerContext: ./application/apps/web
     healthCheckPath: /
     envVars:
+      # Same-origin: the page calls /api/..., Next.js forwards it to the private API.
       - key: NEXT_PUBLIC_API_BASE_URL
         value: /api
       - key: NEXT_PUBLIC_PUBLIC_DEMO_MODE
         value: "true"
       - key: INTERNAL_API_URL
-        value: http://mofa-api:8000
-      - fromGroup: mofa-public
+        value: http://brca-panel-api:8000
+      - fromGroup: brca-panel-public
 
   - type: pserv
-    name: mofa-api
+    name: brca-panel-api
     runtime: docker
+    plan: starter
     dockerfilePath: ./application/apps/api/Dockerfile.public
     dockerContext: .
     healthCheckPath: /health
     disk:
-      name: mofa-demo-state
+      # Holds the SQLite database of runs and copilot conversations.
+      name: brca-panel-state
       mountPath: /var/data
       sizeGB: 1
     envVars:
@@ -40,32 +52,40 @@ services:
         value: /var/data/copilot.db
       - key: SESSION_SECRET
         generateValue: true
+      # Optional. Leave unset and the copilot serves its deterministic summaries,
+      # which are grounded by construction and labelled as such in the interface.
       - key: HOSTED_LLM_API_KEY
         sync: false
       - key: HOSTED_LLM_BASE_URL
         sync: false
+      # Optional. Without it the literature panels state that no key is set
+      # rather than showing an empty list.
       - key: PAPERCLIP_API_KEY
         sync: false
-      - fromGroup: mofa-public
+      - fromGroup: brca-panel-public
 
 envVarGroups:
-  - name: mofa-public
+  - name: brca-panel-public
     envVars:
       - key: LLM_PROVIDER
         value: auto
       - key: HOSTED_LLM_MODEL
         value: gpt-4.1-mini
+      # A local model cannot run on a hosted instance; it needs a GPU and far
+      # more memory than these plans provide.
       - key: OLLAMA_ENABLED
         value: "false"
       - key: ALLOW_EXTERNAL_QUERIES
         value: "true"
+      # Runs and their conversations are deleted after a day.
       - key: RUN_RETENTION_HOURS
         value: "24"
       - key: RATE_LIMIT_PER_MINUTE
         value: "30"
       - key: ANALYSIS_RATE_LIMIT_PER_HOUR
         value: "12"
+      # Must match the web service's public hostname exactly, including https://.
       - key: CORS_ORIGINS
-        value: '["https://mofa-web.onrender.com"]'
+        value: '["https://YOUR-SERVICE-NAME.onrender.com"]'
       - key: TRUSTED_HOSTS
-        value: '["mofa-web.onrender.com","mofa-api","localhost","*.onrender.com"]'
+        value: '["YOUR-SERVICE-NAME.onrender.com","brca-panel-api","localhost"]'

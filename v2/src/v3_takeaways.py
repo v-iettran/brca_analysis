@@ -18,10 +18,17 @@ def _subgroup(label: int) -> str:
 
 
 def _top_pathways(cohort: dict, cluster: int, n: int = 2) -> list[str]:
+    def _cluster_of(row) -> int | None:
+        value = row.get("cluster")
+        # `int(value or -1)` silently maps cluster 0 to -1, because 0 is falsy.
+        # Cluster 0 then never matched its own rows and every patient in it was
+        # told it had no significant pathways.
+        return None if value is None else int(value)
+
     rows = [
         r
         for r in (cohort.get("cluster_profiles") or [])
-        if int(r.get("cluster") or -1) == cluster and r.get("family") == "pathway" and float(r.get("q") or 1) < 0.05
+        if _cluster_of(r) == cluster and r.get("family") == "pathway" and float(r.get("q") or 1) < 0.05
     ]
     rows.sort(key=lambda r: abs(float(r.get("effect") or 0)), reverse=True)
     names = []
