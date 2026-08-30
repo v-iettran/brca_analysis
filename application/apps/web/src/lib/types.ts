@@ -489,6 +489,8 @@ export interface CitationOut {
   pmcid: string | null;
   journal: string | null;
   publisher: string | null;
+  /** Repository the record came from (PMC, bioRxiv, arXiv...), not the journal. */
+  source?: string | null;
   article_type: string | null;
   peer_reviewed: boolean | null;
   full_text_available: boolean | null;

@@ -90,21 +90,48 @@ PMID_PATTERN = re.compile(r"\bPMID:?\s*(\d{5,9})\b", re.IGNORECASE)
 PMCID_PATTERN = re.compile(r"\b(PMC\d{5,10})\b", re.IGNORECASE)
 
 
+def _structured_records(result) -> list | None:
+    """The structured paper list, wherever this SDK version keeps it.
+
+    ``ExecuteResult.papers`` is the documented accessor and reads
+    ``result_data["papers"|"results"]``. Older adapters looked only at ``raw``,
+    which is the HTTP envelope and does not hold the hit list -- so the
+    structured branch never ran and everything fell through to text parsing.
+    Both are tried, newest first, and a list-shaped ``raw`` is still honoured.
+    """
+    papers = getattr(result, "papers", None)
+    if isinstance(papers, list) and papers:
+        return papers
+
+    data = getattr(result, "result_data", None)
+    if isinstance(data, dict):
+        records = data.get("papers") or data.get("results") or data.get("documents")
+        if records:
+            return records
+
+    raw = getattr(result, "raw", None)
+    if isinstance(raw, dict):
+        return raw.get("results") or raw.get("papers") or raw.get("documents")
+    if isinstance(raw, list):
+        return raw
+    return None
+
+
 def _parse_result_to_citations(result, query_text: str) -> list[Citation]:
     """Best-effort structured parse of an ``ExecuteResult``.
 
-    Prefers ``result.raw`` (structured JSON the server returns alongside the
-    formatted text) when it looks like a list of paper records; falls back to
-    light regex extraction over ``result.output`` so the adapter degrades
-    gracefully rather than raising if the raw shape changes.
+    Prefers the SDK's own structured hit list; falls back to light regex
+    extraction over ``result.output`` so the adapter degrades gracefully rather
+    than raising if the shape changes.
+
+    The fallback loses almost everything. ``output`` is the formatted text the
+    CLI prints, and carries no year, journal or source, so a run that lands here
+    yields citations that can only be shown as a title and a link. That is what
+    every record looked like until this function learned to read
+    ``result.papers``.
     """
     citations: list[Citation] = []
-    raw = getattr(result, "raw", None)
-    records = None
-    if isinstance(raw, dict):
-        records = raw.get("results") or raw.get("papers") or raw.get("documents")
-    elif isinstance(raw, list):
-        records = raw
+    records = _structured_records(result)
 
     if records:
         for record in records:
@@ -116,13 +143,20 @@ def _parse_result_to_citations(result, query_text: str) -> list[Citation]:
                     year=_safe_int(record.get("year") or record.get("date")),
                     doi=record.get("doi"),
                     pmid=str(record.get("pmid")) if record.get("pmid") else None,
-                    pmcid=record.get("pmcid") or record.get("pmc_id"),
+                    pmcid=record.get("pmcid") or record.get("pmc_id") or record.get("pmc"),
                     journal=record.get("journal"),
                     publisher=record.get("publisher"),
+                    source=record.get("source"),
                     article_type=record.get("type") or record.get("article_type"),
                     peer_reviewed=record.get("peer_reviewed"),
                     full_text_available=record.get("full_text_available"),
-                    excerpt=(record.get("abstract") or record.get("excerpt") or "")[:600] or None,
+                    excerpt=(
+                        record.get("abstract")
+                        or record.get("excerpt")
+                        or record.get("snippet")
+                        or ""
+                    )[:600]
+                    or None,
                     source_query=query_text,
                     raw=record,
                 )

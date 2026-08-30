@@ -41,6 +41,10 @@ class Citation:
     pmcid: str | None = None
     journal: str | None = None
     publisher: str | None = None
+    # The repository a record came from (PMC, bioRxiv, arXiv...). Distinct from
+    # `journal`: it separates a peer-reviewed article from a preprint, which the
+    # panel shows because it changes how much weight a reader should give it.
+    source: str | None = None
     article_type: str | None = None
     peer_reviewed: bool | None = None
     full_text_available: bool | None = None

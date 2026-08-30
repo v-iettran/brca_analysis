@@ -13,6 +13,7 @@ class CitationOut(BaseModel):
     pmcid: str | None
     journal: str | None
     publisher: str | None
+    source: str | None = None
     article_type: str | None
     peer_reviewed: bool | None
     full_text_available: bool | None

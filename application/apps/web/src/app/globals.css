@@ -58,6 +58,22 @@
   --diverge-pos: #e34948;
   --diverge-mid: #eceef1;
 
+  /* Literature stance. Validated as a set against #ffffff on the all-pairs
+     pairlist: worst CVD ΔE 7.4 (deutan) · normal-vision ΔE 24.9 · all >= 3:1.
+     A CVD figure in the 6–8 band is only legal alongside secondary encoding,
+     so every stance chip carries an icon and the word, never colour alone.
+
+     Amber is deliberately not used here: it is this interface's one chrome hue
+     and already means "not the pre-registered configuration". Violet also beat
+     amber on separation from red — amber↔red measured ΔE 2.6 under deuteranopia.
+
+     `neutral` is intentionally below the chroma floor. It reads gray because
+     "no stance language found" is an absence, and should not look like a finding. */
+  --stance-support: #0d7a4f;
+  --stance-conflict: #c23434;
+  --stance-unclear: #6d4bb8;
+  --stance-neutral: #5b6673;
+
   --radius-panel: 12px;
   --radius-inner: 8px;
   --shadow-panel: 0 1px 2px rgba(16, 21, 28, 0.05);
@@ -111,6 +127,13 @@
     --diverge-neg: #3987e5;
     --diverge-pos: #e66767;
     --diverge-mid: #2b3444;
+
+    /* Same four roles, stepped for #111827 and validated as a set:
+       worst CVD ΔE 6.5 (protan) · normal-vision ΔE 22.5 · all >= 3:1. */
+    --stance-support: #199e70;
+    --stance-conflict: #e66767;
+    --stance-unclear: #9085e9;
+    --stance-neutral: #8b96a8;
 
     --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.4);
   }

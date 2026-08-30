@@ -1,0 +1,303 @@
+{
+ "drug": "doxorubicin",
+ "query_families": [
+  {
+   "label": "exact_drug_breast_cancer",
+   "query_text": "\"doxorubicin\" breast cancer",
+   "result_count": 15,
+   "executed_at": "2026-08-30T17:20:31.046516+00:00"
+  },
+  {
+   "label": "drug_targets_breast_cancer",
+   "query_text": "doxorubicin TOP2A breast cancer",
+   "result_count": 15,
+   "executed_at": "2026-08-30T17:20:31.046516+00:00"
+  },
+  {
+   "label": "systematic_review_meta_analysis",
+   "query_text": "doxorubicin breast cancer systematic review meta-analysis",
+   "result_count": 15,
+   "executed_at": "2026-08-30T17:20:31.046516+00:00"
+  },
+  {
+   "label": "resistance_adverse_conflicting",
+   "query_text": "doxorubicin breast cancer resistance adverse conflicting evidence",
+   "result_count": 15,
+   "executed_at": "2026-08-30T17:20:31.046516+00:00"
+  }
+ ],
+ "citations": [
+  {
+   "title": "Multifaced Anticancer Potential of Doxorubicin: Spotlight on Breast Cancer",
+   "year": null,
+   "doi": null,
+   "pmid": null,
+   "pmcid": "PMC12173247",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "This review examines doxorubicin's multifaceted anticancer effects against breast cancer, including DNA damage and immune response. Doxorubicin remains a significant treatment, though limitations and future research directions are also discussed.",
+   "stance": "neutral",
+   "matched_queries": [
+    "\"doxorubicin\" breast cancer",
+    "doxorubicin TOP2A breast cancer",
+    "doxorubicin breast cancer resistance adverse conflicting evidence"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 90,
+   "combined_score": 67.5,
+   "evidence_rank": 1,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "TWIST1  Gene Expression as a Biomarker for Predicting Primary Doxorubicin Resistance in Breast Cancer",
+   "year": null,
+   "doi": null,
+   "pmid": null,
+   "pmcid": "PMC6956638",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "This study investigated TWIST1 gene expression in breast cancer tumors to predict doxorubicin resistance. Higher TWIST1 expression was found in doxorubicin-resistant tumors, suggesting it can serve as a predictive biomarker.",
+   "stance": "conflicting",
+   "matched_queries": [
+    "\"doxorubicin\" breast cancer",
+    "doxorubicin breast cancer resistance adverse conflicting evidence"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 85,
+   "combined_score": 64.8,
+   "evidence_rank": 2,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "Doxorubicin resistance in breast cancer cells is mediated by extracellular matrix proteins",
+   "year": null,
+   "doi": null,
+   "pmid": null,
+   "pmcid": "PMC5756400",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "Breast cancer cells were cultured in 3D extracellular matrix to study doxorubicin resistance. Cell-matrix interactions mediated resistance by up-regulating pro-survival proteins and reducing proliferation.",
+   "stance": "conflicting",
+   "matched_queries": [
+    "\"doxorubicin\" breast cancer",
+    "doxorubicin breast cancer resistance adverse conflicting evidence"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 85,
+   "combined_score": 64.8,
+   "evidence_rank": 3,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "Positive response to neoadjuvant cyclophosphamide and doxorubicin in topoisomerase II nonamplified/HER2/neu negative/polysomy 17 absent breast cancer patients",
+   "year": null,
+   "doi": null,
+   "pmid": null,
+   "pmcid": "PMC3004590",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "This study analyzed breast cancer patients treated with neoadjuvant cyclophosphamide and doxorubicin. Patients lacking TOP2A amplification, HER2 amplification, and polysomy 17 showed a substantial treatment response.",
+   "stance": "neutral",
+   "matched_queries": [
+    "doxorubicin TOP2A breast cancer"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 85,
+   "combined_score": 64.8,
+   "evidence_rank": 4,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "Carbonic anhydrase IX is a predictive marker of doxorubicin resistance in early-stage breast cancer independent of HER2 and TOP2A amplification",
+   "year": null,
+   "doi": null,
+   "pmid": null,
+   "pmcid": "PMC3305967",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "Carbonic anhydrase IX (CA IX) expression was studied in early-stage breast cancer patients treated with doxorubicin. Higher CA IX levels predict doxorubicin resistance, independent of HER2 and TOP2A amplification.",
+   "stance": "conflicting",
+   "matched_queries": [
+    "doxorubicin TOP2A breast cancer"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 85,
+   "combined_score": 64.8,
+   "evidence_rank": 5,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "Inhibition of UBE2C Promotes Parkin\u2010Mediated K63\u2010Linked Ubiquitination of TOP2A to Induce Senescence and Increase Sensitivity of Doxorubicin in Breast Cancer",
+   "year": null,
+   "doi": null,
+   "pmid": null,
+   "pmcid": "PMC12407369",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "UBE2C inhibition in breast cancer cells suppressed proliferation and induced senescence. This inhibition promoted TOP2A ubiquitination and degradation, increasing doxorubicin sensitivity.",
+   "stance": "neutral",
+   "matched_queries": [
+    "doxorubicin TOP2A breast cancer"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 85,
+   "combined_score": 64.8,
+   "evidence_rank": 6,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "Substituting Doxorubicin with Nonpegylated Liposomal Doxorubicin for the Treatment of Early Breast Cancer: Results of a Retrospective Study",
+   "year": null,
+   "doi": null,
+   "pmid": null,
+   "pmcid": "PMC3913086",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "This retrospective study evaluated nonpegylated liposomal doxorubicin (NPLD) as a substitute for conventional doxorubicin in early breast cancer. NPLD demonstrated maintained efficacy and preserved cardiac function, suggesting it is a well-tolerated alternative.",
+   "stance": "supporting",
+   "matched_queries": [
+    "\"doxorubicin\" breast cancer"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 80,
+   "combined_score": 62.0,
+   "evidence_rank": 7,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "Liposomal Doxorubicin in the Treatment of Breast Cancer Patients: A Review",
+   "year": null,
+   "doi": null,
+   "pmid": null,
+   "pmcid": "PMC3619536",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "Liposomal doxorubicin was reviewed for its use in breast cancer treatment. This formulation shows efficacy with reduced cardiotoxicity compared to conventional doxorubicin.",
+   "stance": "neutral",
+   "matched_queries": [
+    "\"doxorubicin\" breast cancer"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 80,
+   "combined_score": 62.0,
+   "evidence_rank": 8,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "Chemotherapy and survival in advanced breast cancer: the inclusion of doxorubicin in Cooper type regimens.",
+   "year": null,
+   "doi": null,
+   "pmid": null,
+   "pmcid": "PMC1968345",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "This study reviewed randomized trials comparing chemotherapy regimens for advanced breast cancer. Doxorubicin inclusion in Cooper-type regimens improved survival, time to treatment failure, and response rates.",
+   "stance": "supporting",
+   "matched_queries": [
+    "doxorubicin breast cancer systematic review meta-analysis"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 80,
+   "combined_score": 62.0,
+   "evidence_rank": 21,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "Role of MDM2 Overexpression in Doxorubicin Resistance of Breast Carcinoma",
+   "year": null,
+   "doi": null,
+   "pmid": null,
+   "pmcid": "PMC5921757",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "This study investigated MDM2 overexpression's role in doxorubicin resistance in breast cancer. MDM2 overexpression confers doxorubicin resistance and suppresses p53 function, suggesting it's a predictive marker for treatment response.",
+   "stance": "conflicting",
+   "matched_queries": [
+    "doxorubicin breast cancer resistance adverse conflicting evidence"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 80,
+   "combined_score": 62.0,
+   "evidence_rank": 22,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "Anthracyclines in the treatment of early breast cancer friend or foe?",
+   "year": null,
+   "doi": "10.1016/j.breast.2022.06.007",
+   "pmid": null,
+   "pmcid": "PMC9289865",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "Anthracyclines are effective chemotherapy for early breast cancer but carry significant toxicity. Treatment decisions require balancing efficacy against side effects and individualizing patient care.",
+   "stance": "supporting",
+   "matched_queries": [
+    "doxorubicin breast cancer systematic review meta-analysis"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 50,
+   "combined_score": 45.5,
+   "evidence_rank": 43,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  },
+  {
+   "title": "Anthracyclines as Topoisomerase II Poisons: From Early Studies to New Perspectives",
+   "year": null,
+   "doi": "10.3390/ijms19113480",
+   "pmid": null,
+   "pmcid": "PMC6275052",
+   "journal": null,
+   "publisher": null,
+   "article_type": null,
+   "peer_reviewed": null,
+   "full_text_available": null,
+   "excerpt": "Anthracyclines are anticancer drugs that poison topoisomerase II, leading to DNA damage and toxicity. Understanding their interaction with the immune system may lead to more effective and safer treatments.",
+   "stance": "supporting",
+   "matched_queries": [
+    "doxorubicin TOP2A breast cancer"
+   ],
+   "credibility_score": 40,
+   "relevance_score": 20,
+   "combined_score": 29.0,
+   "evidence_rank": 55,
+   "ranking_explanation": "Credibility uses publication identifiers, peer-review/full-text metadata, article type, journal, and recency. Relevance uses subject/context terms and the number of query families that retrieved the paper."
+  }
+ ],
+ "deduplicated_count": 56,
+ "raw_result_count": 40,
+ "cache_hit": true,
+ "searched_at": "2026-08-30T17:20:31.046516+00:00"
+}
