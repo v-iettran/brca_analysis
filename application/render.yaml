@@ -11,7 +11,7 @@
 # https://YOUR-SERVICE-NAME.onrender.com, and the two allowlists must match it.
 services:
   - type: web
-    name: brca-panel-web
+    name: brca-research-demo
     runtime: docker
     plan: starter
     dockerfilePath: ./application/apps/web/Dockerfile
@@ -33,10 +33,12 @@ services:
     plan: starter
     dockerfilePath: ./application/apps/api/Dockerfile.public
     dockerContext: .
-    healthCheckPath: /health
+    # No healthCheckPath here: Render only accepts one on a public web service.
+    # A private service has no external URL to poll, and the blueprint is
+    # rejected outright if you give it one.
     disk:
       # Holds the SQLite database of runs and copilot conversations.
-      name: brca-panel-state
+      name: brca-research-demo-state
       mountPath: /var/data
       sizeGB: 1
     envVars:
