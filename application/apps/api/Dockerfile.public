@@ -4,7 +4,8 @@
 # deconvolution, the clustering, the LINCS scoring — never runs here, so none of
 # the raw inputs are copied in. See the repository-root .dockerignore.
 #
-# Built from the repository root, because it needs both application/ and outputs/.
+# Built from the repository root, because pipeline_core and the API app live in
+# separate sub-trees under application/.
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -23,13 +24,12 @@ RUN pip install --no-cache-dir -r /app/apps/api/requirements.txt
 # patient payloads the panel is built on (~39 MB).
 COPY application/apps/api/app /app/apps/api/app
 
-# Optional curated artifacts. `outputs/` is a single COPY so a missing
-# sub-directory cannot fail the build: the previous version copied
-# `public_demo_bundle` and `synthetic_patients/index.json` individually and
-# broke, because those are v1 paths that no longer exist. The v3 panel does not
-# read them, and `load_registry()` returns empty rather than raising when the
-# compound registry is absent.
-COPY outputs /app/outputs
+# `outputs/` is deliberately NOT copied. It is listed in .gitignore, so it does
+# not exist in the cloned repository Render builds from, and `COPY outputs` fails
+# the build outright with "/outputs: not found". Nothing here needs it: the v3
+# panel serves app/data/v3, the compound registry was never generated, and
+# `load_registry()` returns an empty frame rather than raising when it is absent.
+# pipeline_core.config creates every directory below at import time.
 
 ENV PYTHONUNBUFFERED=1 \
     PORT=8000 \
@@ -38,7 +38,9 @@ ENV PYTHONUNBUFFERED=1 \
     DISABLE_API_DOCS=true \
     OLLAMA_ENABLED=false \
     ARTIFACT_DIR=/app/outputs/copilot_artifacts \
+    SYNTHETIC_PATIENTS_DIR=/app/outputs/copilot_artifacts/synthetic_patients \
     COMPOUND_REGISTRY_DIR=/app/outputs/compound_registry/v1 \
+    COMPOUND_REVIEW_QUEUE_DIR=/app/outputs/compound_registry/review_queue \
     COPILOT_DB_PATH=/tmp/copilot.db
 
 WORKDIR /app/apps/api
