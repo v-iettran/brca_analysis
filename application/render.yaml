@@ -1,5 +1,11 @@
 # Render Blueprint for the public breast-cancer research panel.
 #
+# Configured for Render's free tier, so it needs no card. That constrains the
+# shape: the free tier covers web services only and persistent disks are paid,
+# so both services are public web services and the database lives in temporary
+# storage. What that costs — a public API URL, runs lost on restart, and a slow
+# first visit after the service sleeps — is set out in DEPLOY.md.
+#
 # Two services. The web service is the only thing on the public internet; the
 # API is a private service that Render exposes only inside its own network, and
 # the browser reaches it through Next.js /api rewrites. That means the browser
@@ -13,7 +19,7 @@ services:
   - type: web
     name: brca-research-demo
     runtime: docker
-    plan: starter
+    plan: free
     dockerfilePath: ./application/apps/web/Dockerfile
     dockerContext: ./application/apps/web
     healthCheckPath: /
@@ -24,23 +30,16 @@ services:
       - key: NEXT_PUBLIC_PUBLIC_DEMO_MODE
         value: "true"
       - key: INTERNAL_API_URL
-        value: http://brca-panel-api:8000
+        value: https://brca-research-demo-api.onrender.com
       - fromGroup: brca-panel-public
 
-  - type: pserv
-    name: brca-panel-api
+  - type: web
+    name: brca-research-demo-api
     runtime: docker
-    plan: starter
+    plan: free
     dockerfilePath: ./application/apps/api/Dockerfile.public
     dockerContext: .
-    # No healthCheckPath here: Render only accepts one on a public web service.
-    # A private service has no external URL to poll, and the blueprint is
-    # rejected outright if you give it one.
-    disk:
-      # Holds the SQLite database of runs and copilot conversations.
-      name: brca-research-demo-state
-      mountPath: /var/data
-      sizeGB: 1
+    healthCheckPath: /health
     envVars:
       - key: ENVIRONMENT
         value: production
@@ -51,7 +50,7 @@ services:
       - key: DISABLE_API_DOCS
         value: "true"
       - key: COPILOT_DB_PATH
-        value: /var/data/copilot.db
+        value: /tmp/copilot.db
       - key: SESSION_SECRET
         generateValue: true
       # Optional. Leave unset and the copilot serves its deterministic summaries,
@@ -90,4 +89,4 @@ envVarGroups:
       - key: CORS_ORIGINS
         value: '["https://brca-research-demo.onrender.com"]'
       - key: TRUSTED_HOSTS
-        value: '["brca-research-demo.onrender.com","brca-panel-api","localhost"]'
+        value: '["brca-research-demo.onrender.com","brca-research-demo-api.onrender.com","localhost"]'

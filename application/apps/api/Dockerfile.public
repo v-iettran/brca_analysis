@@ -39,9 +39,9 @@ ENV PYTHONUNBUFFERED=1 \
     OLLAMA_ENABLED=false \
     ARTIFACT_DIR=/app/outputs/copilot_artifacts \
     COMPOUND_REGISTRY_DIR=/app/outputs/compound_registry/v1 \
-    COPILOT_DB_PATH=/var/data/copilot.db
+    COPILOT_DB_PATH=/tmp/copilot.db
 
 WORKDIR /app/apps/api
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
