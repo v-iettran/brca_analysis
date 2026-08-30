@@ -86,6 +86,6 @@ envVarGroups:
         value: "12"
       # Must match the web service's public hostname exactly, including https://.
       - key: CORS_ORIGINS
-        value: '["https://YOUR-SERVICE-NAME.onrender.com"]'
+        value: '["https://brca-research-demo.onrender.com"]'
       - key: TRUSTED_HOSTS
-        value: '["YOUR-SERVICE-NAME.onrender.com","brca-panel-api","localhost"]'
+        value: '["brca-research-demo.onrender.com","brca-panel-api","localhost"]'
