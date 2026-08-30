@@ -22,6 +22,14 @@ RUN pip install --no-cache-dir -e /app/packages/pipeline_core
 COPY application/apps/api/requirements-public.txt /app/apps/api/requirements-public.txt
 RUN pip install --no-cache-dir -r /app/apps/api/requirements-public.txt
 
+# The Paperclip literature SDK. It is installed by a script rather than listed as a
+# requirement because the vendor's URL ends in `paperclip.whl`, a filename pip refuses
+# to parse. The script downloads the same wheel and gives it the PEP 427 name its own
+# metadata already declares. It never fails the build: if the vendor is unreachable,
+# the literature panel says the SDK is unavailable and everything else still works.
+COPY application/apps/api/scripts/install_paperclip.py /tmp/install_paperclip.py
+RUN python /tmp/install_paperclip.py && rm -f /tmp/install_paperclip.py
+
 # The application, including app/data/v3 — the cohort and the three held-out
 # patient payloads the panel is built on (~39 MB).
 COPY application/apps/api/app /app/apps/api/app

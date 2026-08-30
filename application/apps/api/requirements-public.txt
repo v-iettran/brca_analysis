@@ -8,9 +8,8 @@
 #      pip rejects that URL because `paperclip.whl` is not a PEP 427 wheel
 #      filename — a wheel must be named {name}-{version}-{python}-{abi}-{platform}.whl.
 #      It fails with "paperclip.whl is not a valid wheel filename" and takes the
-#      whole build down with it. The import in app/adapters/paperclip_client.py is
-#      guarded by `except ImportError`, so leaving it out is safe: the literature
-#      panels report that the SDK is unavailable, which is what they already do.
+#      whole build down with it. The image installs that same wheel a step later,
+#      via scripts/install_paperclip.py, which renames it correctly first.
 #
 #   2. Test-only packages do not belong in a runtime image.
 #
