@@ -1,0 +1,53 @@
+{
+  "gate": "a7_metabric_panel_transfer",
+  "passed": true,
+  "preregistered": "v3/reports/prereg_a7_metabric_transfer.md",
+  "cohort": {
+    "source": "METABRIC",
+    "n_assigned": 1980,
+    "n_panel_genes_used": 2140,
+    "n_panel_genes_total": 2247
+  },
+  "assignment_distribution": {
+    "0": 617,
+    "1": 641,
+    "2": 468,
+    "3": 254
+  },
+  "largest_share": 0.3237,
+  "median_margin": 0.1583,
+  "primary": {
+    "majority_agree": 2,
+    "of": 3,
+    "composition_r": 0.8867,
+    "permutation_p": 0.001,
+    "passed": true
+  },
+  "secondary": {
+    "os": {
+      "p": 3.32934851636718e-08,
+      "statistic": 37.66406349522467,
+      "n": 1980,
+      "n_events": 1143
+    },
+    "rfs": {
+      "p": 1.6353152988269517e-11,
+      "statistic": 53.23285910012872,
+      "n": 1979,
+      "n_events": 803
+    }
+  },
+  "negative_control": {
+    "observed_statistic": 37.664,
+    "null_p95": 8.197,
+    "passed": true
+  },
+  "tcga_reference": {
+    "logrank_p": 0.038,
+    "n": 1082,
+    "n_events": 151
+  },
+  "excluded": {
+    "subgroup_3": "n=13 in TCGA; excluded before running"
+  }
+}

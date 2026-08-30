@@ -1,11 +1,11 @@
 # v2 notebooks
 
-Each notebook is a stage. They talk **only through files** under `v2/data/`
-and `v2/artifacts/`. Do not import one notebook from another.
+Each notebook is a stage. They talk **only through files** under `v3/data/`
+and `v3/artifacts/`. Do not import one notebook from another.
 
 v3 cluster-first notebooks live in `notebooks/v3/` (A1–A6). Emit with
-`python v2/scripts/emit_v3_notebooks.py` and smoke-run with
-`python v2/scripts/run_notebook.py`.
+`python v3/scripts/emit_v3_notebooks.py` and smoke-run with
+`python v3/scripts/run_notebook.py`.
 
 ## Contract (every notebook)
 
@@ -22,9 +22,9 @@ v3 cluster-first notebooks live in `notebooks/v3/` (A1–A6). Emit with
 From the class repo root:
 
 ```bash
-pip install -r v2/env/v2_requirements.txt
-# optional R: Rscript v2/env/v2_setup.R
-cd v2/notebooks
+pip install -r v3/env/v3_requirements.txt
+# optional R: Rscript v3/env/v3_setup.R
+cd v3/notebooks
 jupyter lab
 ```
 
@@ -45,5 +45,5 @@ NB01 and NB04 stay full (harmonisation and the VAE are cheap).
 ## Path rule
 
 `V2_ROOT` is the directory that contains `src/gate.py`. Notebooks resolve it
-by walking upward from the working directory, so they work from `v2/notebooks/`
+by walking upward from the working directory, so they work from `v3/notebooks/`
 or the repo root.

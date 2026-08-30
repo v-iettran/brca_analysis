@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Emit gated v3 notebooks under v2/notebooks/v3/."""
+"""Emit gated v3 notebooks under v3/notebooks/v3/."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ for cand in [cwd, *cwd.parents]:
     if (cand / "src" / "gate.py").is_file():
         sys.path.insert(0, str(cand / "src"))
         break
-    nested = cand / "v2"
+    nested = cand / "v3"
     if (nested / "src" / "gate.py").is_file():
         sys.path.insert(0, str(nested / "src"))
         break

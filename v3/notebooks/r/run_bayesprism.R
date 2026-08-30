@@ -25,7 +25,7 @@ dir.create(opt$outdir, recursive = TRUE, showWarnings = FALSE)
 if (!requireNamespace("BayesPrism", quietly = TRUE) ||
     !requireNamespace("arrow", quietly = TRUE)) {
   writeLines(
-    "BayesPrism or arrow is not installed. Run: Rscript v2/env/v2_setup.R",
+    "BayesPrism or arrow is not installed. Run: Rscript v3/env/v3_setup.R",
     file.path(opt$outdir, "ERROR.txt")
   )
   quit(status = 1)

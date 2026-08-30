@@ -8,15 +8,15 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from paths import ensure_src_on_path, resolve_v2_root
-# When launched from v2/notebooks, src is a sibling of notebooks.
+# When launched from v3/notebooks, src is a sibling of notebooks.
 import pathlib as _p
 _here = _p.Path.cwd()
 for _cand in [_here, *_here.parents]:
     if (_cand / "src" / "gate.py").is_file():
         sys.path.insert(0, str(_cand / "src"))
         break
-    if (_cand / "v2" / "src" / "gate.py").is_file():
-        sys.path.insert(0, str(_cand / "v2" / "src"))
+    if (_cand / "v3" / "src" / "gate.py").is_file():
+        sys.path.insert(0, str(_cand / "v3" / "src"))
         break
 
 from paths import ensure_src_on_path, resolve_v2_root

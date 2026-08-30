@@ -1,0 +1,14 @@
+{
+  "gate": "a8_control_variance_matched_null",
+  "post_hoc": true,
+  "note": "Matches mean AND sd; A8's null matched mean only. Can only weaken A8.",
+  "panel_auroc": 0.8774,
+  "random_median": 0.8764,
+  "random_p95": 0.8824,
+  "random_max": 0.8843,
+  "n_random_ge_panel": 89,
+  "n_draws": 200,
+  "empirical_p": 0.4478,
+  "passed": false,
+  "caveat": "4 of 16 mean/sd strata were under-supplied in the pool, so matched draws are marginally smaller than the panel."
+}

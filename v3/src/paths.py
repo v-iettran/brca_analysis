@@ -13,12 +13,12 @@ def resolve_v2_root(start: Path | None = None) -> Path:
     for path in candidates:
         if (path / "src" / "gate.py").is_file():
             return path
-        nested = path / "v2"
+        nested = path / "v3"
         if (nested / "src" / "gate.py").is_file():
             return nested
     raise FileNotFoundError(
         "Could not locate v2 root (expected src/gate.py). "
-        "Run notebooks from the repo root or v2/notebooks/."
+        "Run notebooks from the repo root or v3/notebooks/."
     )
 
 

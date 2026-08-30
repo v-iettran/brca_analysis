@@ -42,7 +42,7 @@ write_json_out <- function(mode, elapsed, res, timed_out) {
 if (!requireNamespace("CARNIVAL", quietly = TRUE) ||
     !requireNamespace("arrow", quietly = TRUE) ||
     !requireNamespace("jsonlite", quietly = TRUE)) {
-  writeLines("CARNIVAL/arrow/jsonlite missing. Run: Rscript v2/env/v2_setup.R", err_path)
+  writeLines("CARNIVAL/arrow/jsonlite missing. Run: Rscript v3/env/v3_setup.R", err_path)
   quit(status = 1)
 }
 

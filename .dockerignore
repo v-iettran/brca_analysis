@@ -18,9 +18,9 @@
 .cursor
 
 # Raw inputs — used only by the offline pipeline, never by the running app
-v2/data/raw
-v2/data/interim
-v2/artifacts
+v3/data/raw
+v3/data/interim
+v3/artifacts
 depmap_data
 LINCS_DPDs_archive
 omnipathr-log
@@ -46,4 +46,4 @@ results
 
 # Notebooks and figures
 **/*.ipynb
-v2/reports/figures
+v3/reports/figures

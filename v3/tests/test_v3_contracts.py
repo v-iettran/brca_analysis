@@ -214,7 +214,7 @@ def test_cohort_gate_requires_sample_ids(tmp_path):
 
 
 def test_persist_smoke_writes_app_payloads(tmp_path):
-    v2 = tmp_path / "v2"
+    v2 = tmp_path / "v3"
     (v2 / "src").mkdir(parents=True)
     repo = tmp_path
     (repo / "application" / "apps" / "api" / "app" / "data").mkdir(parents=True)

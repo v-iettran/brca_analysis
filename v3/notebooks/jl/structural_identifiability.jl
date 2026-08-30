@@ -1,7 +1,7 @@
 #!/usr/bin/env julia
 # Structural identifiability for the 20-node signed ODE (NB09).
 # Usage:
-#   julia --project=v2/env/julia structural_identifiability.jl topology.json report.json
+#   julia --project=v3/env/julia structural_identifiability.jl topology.json report.json
 #
 # Uses StructuralIdentifiability.jl
 #   https://github.com/SciML/StructuralIdentifiability.jl
@@ -20,7 +20,7 @@ try
     using JSON
 catch e
     open(report_path, "w") do io
-        write(io, "{\"ok\": false, \"method\": \"StructuralIdentifiability.jl\", \"error\": $(repr(string(e))), \"nonidentifiable\": [], \"note\": \"install via julia v2/env/v2_setup.jl\"}")
+        write(io, "{\"ok\": false, \"method\": \"StructuralIdentifiability.jl\", \"error\": $(repr(string(e))), \"nonidentifiable\": [], \"note\": \"install via julia v3/env/v3_setup.jl\"}")
     end
     exit(0)
 end

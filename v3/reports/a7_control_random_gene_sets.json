@@ -1,0 +1,13 @@
+{
+  "gate": "a7_control_random_gene_sets",
+  "post_hoc": true,
+  "note": "Added after A7 passed. Can only weaken the A7 claim, never rescue it.",
+  "panel_statistic": 37.664,
+  "n_draws": 200,
+  "random_median": 43.295,
+  "random_p95": 51.144,
+  "random_max": 54.188,
+  "n_random_ge_panel": 180,
+  "empirical_p": 0.9005,
+  "passed": false
+}

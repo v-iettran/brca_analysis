@@ -1,0 +1,30 @@
+{
+  "gate": "a8_within_luminal_transfer",
+  "preregistered": "v3/reports/prereg_a8_within_luminal.md",
+  "passed": true,
+  "null": "expression-decile-matched random gene sets, drawn outside the panel",
+  "n_draws": 200,
+  "n_genes": 2140,
+  "primary": {
+    "metric": "AUROC LumB vs LumA on the subgroup-0-minus-1 axis",
+    "panel": 0.8774,
+    "random_median": 0.8657,
+    "random_p95": 0.8729,
+    "random_max": 0.8766,
+    "n_random_ge_panel": 0,
+    "empirical_p": 0.005,
+    "n_luminal": 1175,
+    "n_lumb": 475
+  },
+  "secondary": {
+    "metric": "within-luminal OS logrank, split by axis sign",
+    "panel_statistic": 29.402,
+    "panel_p": 5.8825650974481966e-08,
+    "random_median": 33.166,
+    "n_random_ge_panel": 161,
+    "empirical_p": 0.806,
+    "passed": false
+  },
+  "superseded_by": "a8_control_variance_matched_null",
+  "interpretation": "The pre-registered criterion was met, but the null matched mean expression only. Under a null matching mean AND standard deviation the panel's edge disappears (89/200 random sets beat it, p=0.45). The A8 pass is not evidence of transfer."
+}

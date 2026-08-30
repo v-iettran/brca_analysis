@@ -1,5 +1,5 @@
 # Pipeline v2 Julia environment (NB09 structural identifiability).
-# Usage: julia v2/env/v2_setup.jl
+# Usage: julia v3/env/v3_setup.jl
 using Pkg
 root = dirname(@__FILE__)
 proj = joinpath(root, "julia")

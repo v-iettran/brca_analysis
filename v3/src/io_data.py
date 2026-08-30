@@ -1,4 +1,4 @@
-"""Loaders for the archives dropped into v2/data/raw/.
+"""Loaders for the archives dropped into v3/data/raw/.
 
 BayesPrism is the memory-bound stage (genes × cells × types). CARNIVAL is
 throughput. The ODE is FLOPs. Subsampling here is only for the first of those.

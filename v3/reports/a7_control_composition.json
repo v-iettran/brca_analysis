@@ -1,0 +1,14 @@
+{
+  "gate": "a7_control_random_gene_sets_composition",
+  "post_hoc": true,
+  "note": "Companion to the survival control. Tests the A7 PRIMARY criterion against matched random gene sets.",
+  "panel_r": 0.8867,
+  "panel_majority": 2,
+  "random_median_r": 0.8917,
+  "random_p95": 0.9055,
+  "n_random_ge_panel": 72,
+  "n_draws": 100,
+  "empirical_p": 0.7228,
+  "random_majority_ge2": 100,
+  "passed": false
+}
