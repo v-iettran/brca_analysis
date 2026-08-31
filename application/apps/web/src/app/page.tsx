@@ -6,6 +6,7 @@ import {
   getAnalysisProgress,
   getPublicHealth,
   listDemoPatients,
+  wakeApi,
   parseExpressionFile,
   submitAnalysisAsync,
   submitDemoAnalysis,
@@ -51,19 +52,36 @@ export default function HomePage() {
   const allowUploads = health ? health.allow_custom_uploads : !ENV_PUBLIC_DEMO;
 
   useEffect(() => {
-    getPublicHealth()
-      .then(setHealth)
-      .catch(() => setHealth(null));
-    listDemoPatients({ onRetry: () => setWaking(true) })
-      .then((data) => {
-        setWaking(false);
-        setDemoPatients(data);
-        setSelected((current) => current ?? data[0]?.patient_id ?? null);
-      })
-      .catch((err) => {
-        setWaking(false);
-        setError(String(err));
-      });
+    let live = true;
+    (async () => {
+      // A sleeping API cannot be woken through the /api proxy, so ask the server
+      // to wake it first. Returns immediately when it is already up, and in local
+      // development where there is no proxy.
+      setWaking(true);
+      await wakeApi();
+      if (!live) return;
+      setWaking(false);
+
+      getPublicHealth()
+        .then((value) => live && setHealth(value))
+        .catch(() => live && setHealth(null));
+
+      listDemoPatients({ onRetry: () => live && setWaking(true) })
+        .then((data) => {
+          if (!live) return;
+          setWaking(false);
+          setDemoPatients(data);
+          setSelected((current) => current ?? data[0]?.patient_id ?? null);
+        })
+        .catch((err) => {
+          if (!live) return;
+          setWaking(false);
+          setError(String(err));
+        });
+    })();
+    return () => {
+      live = false;
+    };
   }, []);
 
   // Adjust during render rather than in an effect: uploads can be disabled by

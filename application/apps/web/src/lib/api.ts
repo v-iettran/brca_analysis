@@ -29,8 +29,15 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://loca
  */
 const WAKING_STATUS = new Set([502, 503, 504]);
 
-/** Backoff for a sleeping upstream: ~50s in total, which covers a cold start. */
-const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000, 20000];
+/**
+ * Backoff for a sleeping upstream, ~2 minutes in total.
+ *
+ * Sized against a measured ~42s cold start with room to spare. The previous ladder
+ * totalled ~50s, which sat right on that boundary and so failed intermittently --
+ * the symptom that started this. Proxy requests do trigger the wake, they just
+ * return 502 without waiting for it, so persisting here does eventually succeed.
+ */
+export const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000, 20000, 25000, 25000, 25000];
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -94,6 +101,50 @@ async function apiFetch<T>(path: string, init?: RequestInit, options?: ApiFetchO
     }
     return response.json() as Promise<T>;
   }
+}
+
+/**
+ * Wake the API before asking it for data.
+ *
+ * On Render's free tier both services stop after ~15 minutes idle. A request to
+ * the API's own hostname is held open while it starts -- measured twice at 41s and
+ * 42s -- and returns 200. The same request through the `/api` proxy returns 502
+ * immediately instead of waiting, which is what the user sees.
+ *
+ * So the browser does the waiting, against the address the server hands back. The
+ * API's CORS allowlist already permits this page's origin, verified against the
+ * live service, and `credentials: "omit"` keeps it a simple request with no
+ * preflight.
+ *
+ * Returns true when the API answered, or when there was nothing to wake.
+ */
+export async function wakeApi(): Promise<boolean> {
+  if (API_BASE_URL !== "/api") return true;   // direct connection; nothing to warm
+
+  let origin: string | null = null;
+  try {
+    const response = await fetch("/api/warm", { cache: "no-store" });
+    if (response.ok) origin = ((await response.json()) as { origin: string | null }).origin;
+  } catch {
+    // Fall through to the retry ladder in apiFetch.
+  }
+  if (!origin) return false;
+
+  // Two attempts: a cold start measured ~42s, and the first request occasionally
+  // lands as the container is still binding its port.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const probe = await fetch(`${origin}/health`, {
+        cache: "no-store",
+        credentials: "omit",
+        signal: AbortSignal.timeout(90_000),
+      });
+      if (probe.ok) return true;
+    } catch {
+      // Timed out or refused while starting; try once more.
+    }
+  }
+  return false;
 }
 
 export function getPublicHealth(): Promise<PublicHealth> {

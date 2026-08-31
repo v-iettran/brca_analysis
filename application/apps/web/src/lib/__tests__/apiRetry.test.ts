@@ -7,7 +7,7 @@
  * retry, and what is said when it genuinely fails.
  */
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { listDemoPatients, submitDemoAnalysis } from "@/lib/api";
+import { listDemoPatients, submitDemoAnalysis, RETRY_DELAYS_MS } from "@/lib/api";
 
 const HTML_502 = '<!DOCTYPE html>\n<html lang="en"><head><title>502</title></head><body>502</body></html>';
 
@@ -80,7 +80,17 @@ describe("cold start", () => {
     vi.mocked(fetch).mockResolvedValue(gateway(502));
     const result = await drain(listDemoPatients());
     expect(result.ok).toBe(false);
-    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(7); // initial + 6 backoff steps
+    // One initial attempt plus one per backoff step, derived rather than hardcoded
+    // so tuning the ladder does not require editing this expectation.
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(RETRY_DELAYS_MS.length + 1);
+  });
+
+  it("budgets more time than a real cold start takes", () => {
+    // The API was measured waking in 41s and 42s on two independent cold starts.
+    // The original ladder totalled ~50s, which sat on that boundary and failed
+    // intermittently. This is the invariant that actually mattered.
+    const total = RETRY_DELAYS_MS.reduce((a, b) => a + b, 0);
+    expect(total).toBeGreaterThan(90_000);
   });
 
   it("does not retry a 404 — that is an answer, not a cold start", async () => {
